@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="units\unit-shared-functional.cpp">
+      <Filter>units</Filter>
+    </ClCompile>
+    <ClCompile Include="units\unit-thread-proccesor.cpp">
+      <Filter>units</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="units">
+      <UniqueIdentifier>{efcd1e65-15f1-47fe-ac95-35163a3ba5b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="software">
+      <UniqueIdentifier>{c6085d62-185c-4922-a48b-6ac84d94b039}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="units\unit-shared-functional.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="units\unit-thread-proccesor.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="software\src\ray-tracing-include.hpp">
+      <Filter>software</Filter>
+    </ClInclude>
+    <ClInclude Include="software\src\mesh.hpp">
+      <Filter>software</Filter>
+    </ClInclude>
+    <ClInclude Include="software\src\mesh-bvh.hpp">
+      <Filter>software</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

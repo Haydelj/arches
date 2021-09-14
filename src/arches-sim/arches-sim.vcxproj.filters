@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="isa">
+      <UniqueIdentifier>{bb4b5a0a-47d6-4fa4-921a-731cd0489bbf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="units">
+      <UniqueIdentifier>{6948de18-f7e5-4efa-812e-98f8e3885248}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{f85519bb-4a6f-45a0-8435-63471101e8a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="units\riscv">
+      <UniqueIdentifier>{d0eb86ed-0bf6-41c3-ab3d-bfada72a5e90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="USIMM">
+      <UniqueIdentifier>{e9a5e6fe-fb56-443f-96c2-9cc809833b4f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="util\file.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\string.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\barrier.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="units\input-buffers-concat.cpp">
+      <Filter>units</Filter>
+    </ClCompile>
+    <ClCompile Include="units\unit-base.cpp">
+      <Filter>units</Filter>
+    </ClCompile>
+    <ClCompile Include="units\unit-cache-passthrough.cpp">
+      <Filter>units</Filter>
+    </ClCompile>
+    <ClCompile Include="units\unit-dram.cpp">
+      <Filter>units</Filter>
+    </ClCompile>
+    <ClCompile Include="units\unit-mmu.cpp">
+      <Filter>units</Filter>
+    </ClCompile>
+    <ClCompile Include="simulator-core.cpp" />
+    <ClCompile Include="elf.cpp" />
+    <ClCompile Include="units\input-buffer.cpp">
+      <Filter>units</Filter>
+    </ClCompile>
+    <ClCompile Include="isa\riscv.cpp">
+      <Filter>isa</Filter>
+    </ClCompile>
+    <ClCompile Include="units\riscv\unit-core-simple.cpp">
+      <Filter>units\riscv</Filter>
+    </ClCompile>
+    <ClCompile Include="units\riscv\registers.cpp">
+      <Filter>units\riscv</Filter>
+    </ClCompile>
+    <ClCompile Include="USIMM\memory_controller.cc" />
+    <ClCompile Include="USIMM\scheduler.cc" />
+    <ClCompile Include="USIMM\usimm.cc" />
+    <ClCompile Include="units\unit-sram.cpp" />
+    <ClCompile Include="units\unit-cache.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="util\file.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\hash.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\math.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\string.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\atomic-set.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\atomic-vector.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\barrier.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\endian.hpp">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="units\input-buffer.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="units\input-buffers-concat.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="units\unit-base.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="units\unit-cache-passthrough.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="units\unit-dram.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="units\unit-mmu.hpp">
+      <Filter>units</Filter>
+    </ClInclude>
+    <ClInclude Include="isa\errors.hpp">
+      <Filter>isa</Filter>
+    </ClInclude>
+    <ClInclude Include="elf.hpp" />
+    <ClInclude Include="include.hpp" />
+    <ClInclude Include="simulator-core.hpp" />
+    <ClInclude Include="stdafx.hpp" />
+    <ClInclude Include="work-item.hpp" />
+    <ClInclude Include="isa\riscv.hpp">
+      <Filter>isa</Filter>
+    </ClInclude>
+    <ClInclude Include="units\riscv\unit-core-simple.hpp">
+      <Filter>units\riscv</Filter>
+    </ClInclude>
+    <ClInclude Include="units\riscv\unit-execution-base.hpp">
+      <Filter>units\riscv</Filter>
+    </ClInclude>
+    <ClInclude Include="units\riscv\registers.hpp">
+      <Filter>units\riscv</Filter>
+    </ClInclude>
+    <ClInclude Include="USIMM\utils.h" />
+    <ClInclude Include="USIMM\configfile.h" />
+    <ClInclude Include="USIMM\memory_controller.h" />
+    <ClInclude Include="USIMM\params.h" />
+    <ClInclude Include="USIMM\processor.h" />
+    <ClInclude Include="USIMM\scheduler.h" />
+    <ClInclude Include="USIMM\usimm.h" />
+    <ClInclude Include="units\unit-sram.hpp" />
+    <ClInclude Include="units\unit-memory-base.hpp" />
+    <ClInclude Include="logger-base.hpp" />
+    <ClInclude Include="units\unit-ram-base.hpp" />
+    <ClInclude Include="units\unit-cache.hpp" />
+    <ClInclude Include="util\bit-manipulation.hpp" />
+  </ItemGroup>
+</Project>

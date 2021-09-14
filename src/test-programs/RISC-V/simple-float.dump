@@ -1,0 +1,136 @@
+
+simple-float:     file format elf64-littleriscv
+simple-float
+architecture: riscv:rv64, flags 0x00000112:
+EXEC_P, HAS_SYMS, D_PAGED
+start address 0x00000000000100b0
+
+Program Header:
+    LOAD off    0x0000000000000000 vaddr 0x0000000000010000 paddr 0x0000000000010000 align 2**12
+         filesz 0x0000000000000144 memsz 0x0000000000000144 flags r-x
+    LOAD off    0x0000000000000148 vaddr 0x0000000000011148 paddr 0x0000000000011148 align 2**12
+         filesz 0x0000000000000000 memsz 0x0000000000000010 flags rw-
+
+Sections:
+Idx Name          Size      VMA               LMA               File off  Algn
+  0 .text         00000064  00000000000100b0  00000000000100b0  000000b0  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .eh_frame     0000002c  0000000000010118  0000000000010118  00000118  2**3
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  2 .bss          00000010  0000000000011148  0000000000011148  00000148  2**3
+                  ALLOC
+  3 .comment      00000012  0000000000000000  0000000000000000  00000144  2**0
+                  CONTENTS, READONLY
+  4 .riscv.attributes 00000030  0000000000000000  0000000000000000  00000156  2**0
+                  CONTENTS, READONLY
+SYMBOL TABLE:
+00000000000100b0 l    d  .text	0000000000000000 .text
+0000000000010118 l    d  .eh_frame	0000000000000000 .eh_frame
+0000000000011148 l    d  .bss	0000000000000000 .bss
+0000000000000000 l    d  .comment	0000000000000000 .comment
+0000000000000000 l    d  .riscv.attributes	0000000000000000 .riscv.attributes
+0000000000000000 l    df *ABS*	0000000000000000 simple-float.c
+0000000000011944 g       *ABS*	0000000000000000 __global_pointer$
+0000000000011144 g       .eh_frame	0000000000000000 __SDATA_BEGIN__
+0000000000000000         *UND*	0000000000000000 _start
+0000000000011148 g     O .bss	0000000000000010 mem
+0000000000011158 g       .bss	0000000000000000 __BSS_END__
+0000000000011144 g       .bss	0000000000000000 __bss_start
+00000000000100b0 g     F .text	0000000000000064 main
+0000000000011144 g       .eh_frame	0000000000000000 __DATA_BEGIN__
+0000000000011144 g       .eh_frame	0000000000000000 _edata
+0000000000011158 g       .bss	0000000000000000 _end
+
+
+
+Disassembly of section .text:
+
+00000000000100b0 <main>:
+   100b0:	ff010113          	addi	sp,sp,-16
+   100b4:	00012623          	sw	zero,12(sp)
+   100b8:	00c12783          	lw	a5,12(sp)
+   100bc:	00300713          	li	a4,3
+   100c0:	0007879b          	sext.w	a5,a5
+   100c4:	04f76263          	bltu	a4,a5,10108 <main+0x58>
+   100c8:	00011637          	lui	a2,0x11
+   100cc:	ff5636b7          	lui	a3,0xff563
+   100d0:	14860613          	addi	a2,a2,328 # 11148 <mem>
+   100d4:	41268693          	addi	a3,a3,1042 # ffffffffff563412 <__global_pointer$+0xffffffffff551ace>
+   100d8:	00300593          	li	a1,3
+   100dc:	00c12783          	lw	a5,12(sp)
+   100e0:	00c12703          	lw	a4,12(sp)
+   100e4:	02079513          	slli	a0,a5,0x20
+   100e8:	0017071b          	addiw	a4,a4,1
+   100ec:	00e12623          	sw	a4,12(sp)
+   100f0:	00c12703          	lw	a4,12(sp)
+   100f4:	01e55793          	srli	a5,a0,0x1e
+   100f8:	00f607b3          	add	a5,a2,a5
+   100fc:	00d7a023          	sw	a3,0(a5)
+   10100:	0007079b          	sext.w	a5,a4
+   10104:	fcf5fce3          	bgeu	a1,a5,100dc <main+0x2c>
+   10108:	00000513          	li	a0,0
+   1010c:	01010113          	addi	sp,sp,16
+   10110:	00008067          	ret
+
+Disassembly of section .eh_frame:
+
+0000000000010118 <__DATA_BEGIN__-0x102c>:
+   10118:	0010                	0x10
+   1011a:	0000                	unimp
+   1011c:	0000                	unimp
+   1011e:	0000                	unimp
+   10120:	00527a03          	0x527a03
+   10124:	7c01                	lui	s8,0xfffe0
+   10126:	0101                	addi	sp,sp,0
+   10128:	00020d1b          	sext.w	s10,tp
+   1012c:	0014                	0x14
+   1012e:	0000                	unimp
+   10130:	0018                	0x18
+   10132:	0000                	unimp
+   10134:	ff7c                	sd	a5,248(a4)
+   10136:	ffff                	0xffff
+   10138:	0064                	addi	s1,sp,12
+   1013a:	0000                	unimp
+   1013c:	4400                	lw	s0,8(s0)
+   1013e:	100e                	c.slli	zero,0x23
+   10140:	5c02                	lw	s8,32(sp)
+   10142:	000e                	c.slli	zero,0x3
+
+Disassembly of section .bss:
+
+0000000000011148 <mem>:
+	...
+
+Disassembly of section .comment:
+
+0000000000000000 <.comment>:
+   0:	3a434347          	fmsub.d	ft6,ft6,ft4,ft7,rmm
+   4:	2820                	fld	fs0,80(s0)
+   6:	29554e47          	fmsub.s	ft8,fa0,fs5,ft5,rmm
+   a:	3120                	fld	fs0,96(a0)
+   c:	2e30                	fld	fa2,88(a2)
+   e:	2e32                	fld	ft8,264(sp)
+  10:	0030                	addi	a2,sp,8
+
+Disassembly of section .riscv.attributes:
+
+0000000000000000 <.riscv.attributes>:
+   0:	2f41                	addiw	t5,t5,16
+   2:	0000                	unimp
+   4:	7200                	ld	s0,32(a2)
+   6:	7369                	lui	t1,0xffffa
+   8:	01007663          	bgeu	zero,a6,14 <main-0x1009c>
+   c:	0025                	c.nop	9
+   e:	0000                	unimp
+  10:	1004                	addi	s1,sp,32
+  12:	7205                	lui	tp,0xfffe1
+  14:	3676                	fld	fa2,376(sp)
+  16:	6934                	ld	a3,80(a0)
+  18:	7032                	0x7032
+  1a:	5f30                	lw	a2,120(a4)
+  1c:	326d                	addiw	tp,tp,-5
+  1e:	3070                	fld	fa2,224(s0)
+  20:	615f 7032 5f30      	0x5f307032615f
+  26:	3266                	fld	ft4,120(sp)
+  28:	3070                	fld	fa2,224(s0)
+  2a:	645f 7032 0030      	0x307032645f

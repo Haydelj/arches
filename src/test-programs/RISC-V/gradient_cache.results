@@ -1,0 +1,6 @@
+Run with -O2 optimizations
+Simulation Took: 2167633 cycles
+Runtime: 285804 ms
+Cache misses: 8214
+Cache hits: 24594
+ENTER to exit.

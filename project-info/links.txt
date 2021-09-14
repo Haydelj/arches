@@ -1,0 +1,16 @@
+A list of helpfull resources.
+
+Info on building the compiler. This references GCC but clang was very similar if I remember correctly:
+https://riscv.org/software-tools/risc-v-gnu-compiler-toolchain/
+
+RISCV registers:
+https://en.wikichip.org/wiki/risc-v/registers
+
+Official RISCV spec sheet:
+https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf
+
+RISCV application binary interface reference:
+https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md
+
+Link to where the RISCV op code encodings. They aren't in the official doc:
+https://github.com/riscv/riscv-opcodes/blob/master/opcodes-rvc

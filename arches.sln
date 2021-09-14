@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "arches-sim", "src\arches-sim\arches-sim.vcxproj", "{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B611F999-FBB8-4C83-941F-79179D7CCBF0}"
+	ProjectSection(SolutionItems) = preProject
+		src\arches.natvis = src\arches.natvis
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sim-TRaX", "src\sim-TRaX\sim-TRaX.vcxproj", "{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4} = {9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sim-simple", "src\sim-simple\sim-simple.vcxproj", "{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4} = {9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		debug|x64 = debug|x64
+		debug|x86 = debug|x86
+		release|x64 = release|x64
+		release|x86 = release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}.debug|x64.ActiveCfg = Debug|x64
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}.debug|x64.Build.0 = Debug|x64
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}.debug|x86.ActiveCfg = Debug|Win32
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}.debug|x86.Build.0 = Debug|Win32
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}.release|x64.ActiveCfg = Release|x64
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}.release|x64.Build.0 = Release|x64
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}.release|x86.ActiveCfg = Release|Win32
+		{9C66C133-41DF-48E2-9BF4-53BFEB6EA2E4}.release|x86.Build.0 = Release|Win32
+		{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}.debug|x64.ActiveCfg = Debug|x64
+		{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}.debug|x64.Build.0 = Debug|x64
+		{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}.debug|x86.ActiveCfg = Debug|Win32
+		{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}.debug|x86.Build.0 = Debug|Win32
+		{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}.release|x64.ActiveCfg = Release|x64
+		{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}.release|x64.Build.0 = Release|x64
+		{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}.release|x86.ActiveCfg = Release|Win32
+		{69C10F05-0F4F-43EF-ADEE-7D44AA1721D2}.release|x86.Build.0 = Release|Win32
+		{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}.debug|x64.ActiveCfg = Debug|x64
+		{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}.debug|x64.Build.0 = Debug|x64
+		{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}.debug|x86.ActiveCfg = Debug|Win32
+		{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}.debug|x86.Build.0 = Debug|Win32
+		{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}.release|x64.ActiveCfg = Release|x64
+		{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}.release|x64.Build.0 = Release|x64
+		{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}.release|x86.ActiveCfg = Release|Win32
+		{0801FE0B-DC68-44F3-AFD0-06EBA6EFF426}.release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C261E26C-BE11-4921-B021-71108BBF43DF}
+	EndGlobalSection
+EndGlobal

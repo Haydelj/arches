@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<!--
+		Format specifiers:
+		https://msdn.microsoft.com/en-us/library/75w45ekt(v=vs.140).aspx
+	-->
+
+	<Type Name="Arches::Units::MIPS64r6::Register">
+		<DisplayString>
+			{u64,H}₁₆    {u64,u}₁₀    {s64,i}₁₀
+		</DisplayString>
+		<Expand HideRawView="true">
+			<Synthetic Name="[ 1 byte ]" ><DisplayString>{u8, H}₁₆    {u8, u}₁₀    {s8, i}₁₀</DisplayString></Synthetic>
+			<Synthetic Name="[ 2 bytes ]"><DisplayString>{u16,H}₁₆    {u16,u}₁₀    {s16,i}₁₀</DisplayString></Synthetic>
+			<Synthetic Name="[ 4 bytes ]"><DisplayString>{u32,H}₁₆    {u32,u}₁₀    {s32,i}₁₀    {f32}₁₀</DisplayString></Synthetic>
+			<Synthetic Name="[ 8 bytes ]"><DisplayString>{u64,H}₁₆    {u64,u}₁₀    {s64,i}₁₀    {f64}₁₀</DisplayString></Synthetic>
+		</Expand>
+	</Type>
+
+	<Type Name="Arches::ELF">
+		<DisplayString Condition="elf_header->e_ident.ei_data==1 &amp;&amp; elf_header->e_type==2 &amp;&amp; elf_header->e_machine==8">ELF ({elf_header->e_ident.ei_class==1?32:64}-bit little-endian MIPS executable)</DisplayString>
+		<DisplayString Condition="elf_header->e_ident.ei_data==1 &amp;&amp; elf_header->e_type==3 &amp;&amp; elf_header->e_machine==8">ELF ({elf_header->e_ident.ei_class==1?32:64}-bit little-endian MIPS shared object)</DisplayString>
+		<DisplayString Condition="elf_header->e_ident.ei_data==2 &amp;&amp; elf_header->e_type==2 &amp;&amp; elf_header->e_machine==8">ELF ({elf_header->e_ident.ei_class==1?32:64}-bit big-endian MIPS executable)</DisplayString>
+		<DisplayString Condition="elf_header->e_ident.ei_data==2 &amp;&amp; elf_header->e_type==3 &amp;&amp; elf_header->e_machine==8">ELF ({elf_header->e_ident.ei_class==1?32:64}-bit big-endian MIPS shared object)</DisplayString>
+		<Expand HideRawView="false">
+			<Synthetic Name="[ entry point ]">
+				<DisplayString Condition="elf_header->e_ident.ei_class==1">{elf_header->e_entry.u32,H}</DisplayString>
+				<DisplayString Condition="elf_header->e_ident.ei_class==2">{elf_header->e_entry.u64,H}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[ processor flags ]">
+				<DisplayString>{elf_header->e_flags,b}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[ program header ]">
+				<DisplayString>{{ size={elf_header->e_phnum} }}</DisplayString>
+				<Expand>
+					<ArrayItems>
+						<Size>elf_header->e_phnum</Size>
+						<ValuePointer>program_header->arr._Mypair._Myval2._Myfirst</ValuePointer>
+					</ArrayItems>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="[ section header ]">
+				<DisplayString>{{ size={elf_header->e_shnum} }} (not loaded)</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+	<Type Name="Arches::ELF::ProgramHeader::ArrayElement">
+		<DisplayString Condition="p_type==0">(null)</DisplayString>
+		<DisplayString Condition="p_type==1">(loadable)</DisplayString>
+		<DisplayString Condition="p_type==2">(dynamic linking info)</DisplayString>
+		<DisplayString Condition="p_type==3">(desired interpreter)</DisplayString>
+		<DisplayString Condition="p_type==4">(auxiliary)</DisplayString>
+		<DisplayString Condition="p_type==5">(reserved)</DisplayString>
+		<DisplayString Condition="p_type==6">(program header info)</DisplayString>
+		<DisplayString Condition="p_type==7">(thread-local storage template)</DisplayString>
+		<DisplayString Condition="p_type&gt;=0x60000000u&amp;&amp;p_type&lt;=0x6FFFFFFFu">(OS-specific info {p_type-0x60000000u})</DisplayString>
+		<DisplayString Condition="p_type&gt;=0x70000000u&amp;&amp;p_type&lt;=0x7FFFFFFFu">(processor-specific info {p_type-0x70000000u})</DisplayString>
+		<Expand HideRawView="false">
+			<Item Name="[vaddr]" Condition="_header->e_ident.ei_class==1">p_vaddr.u32,H</Item>
+			<Item Name="[vaddr]" Condition="_header->e_ident.ei_class==2">p_vaddr.u64,H</Item>
+
+			<Synthetic Name="[size]" Condition="_header->e_ident.ei_class==1"><DisplayString>{p_memsz.u32} ({p_filesz.u32} from file)</DisplayString></Synthetic>
+			<Synthetic Name="[size]" Condition="_header->e_ident.ei_class==2"><DisplayString>{p_memsz.u64} ({p_filesz.u64} from file)</DisplayString></Synthetic>
+
+			<Item Name="[data]" Condition="segment!=nullptr">segment->data</Item>
+		</Expand>
+	</Type>
+	<Type Name="Arches::ELF::LoadableSegment">
+		<Expand HideRawView="true">
+			<Item Name="vaddr" Condition="_header->e_ident.ei_class==1">(uint32_t)(vaddr),H</Item>
+			<Item Name="vaddr" Condition="_header->e_ident.ei_class==2">(uint64_t)(vaddr),H</Item>
+			<Item Name="[size]">data._Mypair._Myval2._Myend - data._Mypair._Myval2._Myfirst</Item>
+			<ArrayItems>
+				<Size>data._Mypair._Myval2._Myend - data._Mypair._Myval2._Myfirst</Size>
+				<ValuePointer>data._Mypair._Myval2._Myfirst</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<Type Name="Arches::ISA::MIPS64r6::Instruction">
+		<!--
+		s = ""
+		for i in range(32): s+="{(data&amp;0x%08Xu)?1:0,d}"%(1<<(31-i))
+		-->
+		<DisplayString>
+			0b{(data&amp;0x80000000u)?1:0,d}{(data&amp;0x40000000u)?1:0,d}{(data&amp;0x20000000u)?1:0,d}{(data&amp;0x10000000u)?1:0,d}{(data&amp;0x08000000u)?1:0,d}{(data&amp;0x04000000u)?1:0,d}'{(data&amp;0x02000000u)?1:0,d}{(data&amp;0x01000000u)?1:0,d}{(data&amp;0x00800000u)?1:0,d}{(data&amp;0x00400000u)?1:0,d}{(data&amp;0x00200000u)?1:0,d}{(data&amp;0x00100000u)?1:0,d}{(data&amp;0x00080000u)?1:0,d}{(data&amp;0x00040000u)?1:0,d}{(data&amp;0x00020000u)?1:0,d}{(data&amp;0x00010000u)?1:0,d}{(data&amp;0x00008000u)?1:0,d}{(data&amp;0x00004000u)?1:0,d}{(data&amp;0x00002000u)?1:0,d}{(data&amp;0x00001000u)?1:0,d}{(data&amp;0x00000800u)?1:0,d}{(data&amp;0x00000400u)?1:0,d}{(data&amp;0x00000200u)?1:0,d}{(data&amp;0x00000100u)?1:0,d}{(data&amp;0x00000080u)?1:0,d}{(data&amp;0x00000040u)?1:0,d}{(data&amp;0x00000020u)?1:0,d}{(data&amp;0x00000010u)?1:0,d}{(data&amp;0x00000008u)?1:0,d}{(data&amp;0x00000004u)?1:0,d}{(data&amp;0x00000002u)?1:0,d}{(data&amp;0x00000001u)?1:0,d}
+		</DisplayString>
+
+		<Expand HideRawView="true">
+			<Synthetic Name="mnemonic" >
+				<!--<DisplayString Condition="!ISA::MIPS64r6::isa[opcode]._is_meta">
+					{ISA::MIPS64r6::isa[opcode]._direct._mnemonic,s8}
+				</DisplayString>
+				<DisplayString Condition= "ISA::MIPS64r6::isa[opcode]._is_meta">
+					{ISA::MIPS64r6::isa[opcode]._meta._mnemonic,s8}
+				</DisplayString>-->
+				<DisplayString>
+					{ISA::MIPS64r6::isa[opcode].get_mnemonic(*this),ac}
+				</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+	<!-- <Type Name="Arches::ISA::MIPS64r6::InstructionInfo">
+		<DisplayString>
+			{get_mnemonic(  reinterpret_cast&lt;Arches::ISA::MIPS64r6::Instruction&amp;&gt;(0x00000000u)  )}
+		</DisplayString>
+	</Type> -->
+
+</AutoVisualizer>

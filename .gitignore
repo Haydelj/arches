@@ -1,0 +1,22 @@
+.vs/
+
+.build/
+
+*.VC.db
+
+*.o
+*.out
+
+*.ppm
+
+*.tlog
+
+*.log
+
+/arches-test/Release/
+/arches-test/Debug/
+/arches-test/x64
+/arches-test/x64/Debug
+/x64/Debug
+/src/sim-TRaX/My Advisor Results - sim-TRaX
+/src/sim-TRaX/VTune Profiler Results/sim-TRaX
