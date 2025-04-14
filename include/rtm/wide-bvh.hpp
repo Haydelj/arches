@@ -25,7 +25,7 @@ constexpr int INVALID_NODE = -1;
 class WBVH
 {
 public:
-	const static uint WIDTH = 12;
+	const static uint WIDTH = 6;
 	const static uint MAX_PRIMS = 3;
 	const static uint LEAF_RATIO = 1;
 
@@ -445,8 +445,9 @@ inline WBVH::Node decompress(const WBVH::Node& wnode)
 struct RestartTrail
 {
 	const static uint N = WBVH::WIDTH;
+	const static uint BITS_PER_LEVEL = 3;
 
-	uint8_t _data[32];
+	rtm::BitArray<64> data;
 
 	uint find_parent_level(uint level) const
 	{
@@ -458,32 +459,28 @@ struct RestartTrail
 
 	uint get(uint level) const
 	{
-		return _data[level];
+		return data.read(level * BITS_PER_LEVEL, BITS_PER_LEVEL);
 	}
 
 	void set(uint level, uint value)
 	{
-		_data[level] = value;
-		//_data &= ~(0xfull << shft(level));
-		//_data |= (uint64_t)value << shft(level);
+		data.write(level * BITS_PER_LEVEL, BITS_PER_LEVEL, value);
 	}
 
 	void clear(uint start_level)
 	{
 		for(uint i = start_level; i < 32; ++i)
-			_data[i] = 0;
-		//uint64_t mask = ((0x1ull << shft(start_level)) - 1);
-		//_data &= mask;
+			set(i, 0);
 	}
 
 	bool is_done()
 	{
-		return _data[0] == 255;
+		return get(0) >= N;
 	}
 
 	void mark_done()
 	{
-		_data[0] = 255;
+		get(0) == N + 1;
 	}
 };
 

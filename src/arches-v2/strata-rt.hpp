@@ -173,11 +173,11 @@ static STRaTARTKernel::Args initilize_buffers(Units::UnitMainMemoryBase* main_me
 	if(args.pregen_rays)
 		pregen_rays(args.framebuffer_width, args.framebuffer_height, args.camera, bvh2, mesh, sim_config.get_int("pregen_bounce"), rays);
 
-	rtm::WBVH wbvh(bvh2, build_objects);
+	rtm::WBVH wbvh(bvh2, build_objects, &mesh, false);
 	mesh.reorder(build_objects);
 
 	rtm::NVCWBVH cwbvh(wbvh);
-	rtm::CompressedWideTreeletBVH cwtbvh(cwbvh, mesh);
+	rtm::CompressedWideTreeletBVH cwtbvh(cwbvh, wbvh.ft_blocks.data());
 	args.treelets = write_vector(main_memory, page_size, cwtbvh.treelets, heap_address);
 
 	std::vector<rtm::Triangle> tris;
@@ -194,9 +194,9 @@ void run_sim_strata_rt(const SimulationConfig& sim_config)
 
 #if 1 //Modern config
 	double clock_rate = 2.0e9;
-	uint num_threads = sim_config.get_int("num_threads");
-	uint num_tps = sim_config.get_int("num_tps");
-	uint num_tms = sim_config.get_int("num_tms");
+	uint num_threads = 1;
+	uint num_tps = 64;
+	uint num_tms = 64;
 	uint64_t stack_size = 512;
 
 	//Memory
@@ -211,6 +211,7 @@ void run_sim_strata_rt(const SimulationConfig& sim_config)
 	dram_config.size = 4ull << 30; //4GB
 	dram_config.num_controllers = num_partitions;
 	dram_config.partition_stride = partition_mask;
+	dram_config.clock_ratio = 4.0f;
 
 
 	//#if 1
@@ -247,8 +248,8 @@ void run_sim_strata_rt(const SimulationConfig& sim_config)
 	UnitL1Cache::Configuration l1d_config;
 	l1d_config.level = 1;
 	l1d_config.block_size = block_size;
-	l1d_config.size = sim_config.get_int("l1_size");
-	l1d_config.associativity = sim_config.get_int("l1_associativity");
+	l1d_config.size = 64 << 10;
+	l1d_config.associativity = 16;
 	l1d_config.num_banks = 4;
 	l1d_config.bank_select_mask = generate_nbit_mask(log2i(l1d_config.num_banks)) << log2i(l1d_config.block_size);
 	l1d_config.crossbar_width = 4;

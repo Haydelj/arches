@@ -49,17 +49,16 @@ bool UnitTreeletRTCore::_try_queue_node(uint ray_id, uint treelet_id, uint node_
 	return true;
 }
 
-bool UnitTreeletRTCore::_try_queue_tri(uint ray_id, uint treelet_id, uint tri_offset, uint num_tris)
+bool UnitTreeletRTCore::_try_queue_tri(uint ray_id, uint treelet_id, uint tri_id)
 {
-	paddr_t start = (paddr_t)&((Treelet*)_treelet_base_addr)[treelet_id].data[tri_offset];
-	paddr_t end = start + sizeof(Treelet::Triangle) * num_tris;
+	paddr_t start = (paddr_t)&((Treelet*)_treelet_base_addr)[treelet_id].prims[tri_id];
+	paddr_t end = start + sizeof(rtm::FTB);
 
 	_assert(start < 4ull * 1204 * 1024 * 1024);
 
 	RayState& ray_state = _ray_states[ray_id];
 	ray_state.buffer.address = start;
 	ray_state.buffer.bytes_filled = 0;
-	ray_state.buffer.num_tris = num_tris;
 
 	//split request at cache boundries
 	//queue the requests to fill the buffer
@@ -168,10 +167,9 @@ void UnitTreeletRTCore::_read_returns()
 		if(type == TRI)
 		{
 			uint offset = (ret.paddr - buffer.address);
-			std::memcpy((uint8_t*)&buffer.tris + offset, ret.data, ret.size);
-
+			std::memcpy((uint8_t*)&buffer.ftb + offset, ret.data, ret.size);
 			buffer.bytes_filled += ret.size;
-			if(buffer.bytes_filled == sizeof(Treelet::Triangle) * buffer.num_tris)
+			if(buffer.bytes_filled == sizeof(rtm::FTB))
 			{
 				_ray_states[ray_id].phase = Phase::TRI_ISECT;
 				_tri_isect_queue.push(ray_id);
@@ -286,7 +284,7 @@ void UnitTreeletRTCore::_schedule_ray()
 			}
 			else
 			{
-				_try_queue_tri(ray_id, ray_state.ray_data.treelet_id, entry.data.triangle_index * 4, entry.data.num_tri);
+				_try_queue_tri(ray_id, ray_state.ray_data.treelet_id, entry.data.triangle_index);
 				ray_state.phase = Phase::TRI_FETCH;
 
 				log.issue_counters[(uint)IssueType::NODE_ISSUE]++;
@@ -317,7 +315,7 @@ void UnitTreeletRTCore::_simualte_intersectors()
 		rtm::Ray& ray = ray_state.ray_data.ray;
 		rtm::vec3& inv_d = ray_state.inv_d;
 		rtm::Hit& hit = ray_state.ray_data.hit;
-		const rtm::WideTreeletBVH::Treelet::Node node = buffer.node.decompress();
+		const rtm::WideTreeletBVH::Treelet::Node node = decompress(buffer.node);
 
 		_boxes_issued += 6;
 		if(_boxes_issued >= rtm::WideTreeletBVH::WIDTH)
@@ -387,16 +385,19 @@ void UnitTreeletRTCore::_simualte_intersectors()
 		RayState& ray_state = _ray_states[ray_id];
 		StagingBuffer& buffer = ray_state.buffer;
 
+		rtm::IntersectionTriangle tris[rtm::FTB::MAX_PRIMS];
+		uint tri_count = rtm::decompress(buffer.ftb, 42, tris);
+
 		_tris_issued++;
-		if(_tris_issued >= buffer.num_tris)
+		if(_tris_issued >= tri_count)
 		{
 			rtm::Ray& ray = ray_state.ray_data.ray;
 			rtm::vec3& inv_d = ray_state.inv_d;
 			rtm::Hit& hit = ray_state.ray_data.hit;
 
-			for(uint i = 0; i < buffer.num_tris; ++i)
-				if(rtm::intersect(buffer.tris[i].tri, ray, hit))
-					hit.id = buffer.tris[i].id;
+			for(uint i = 0; i < tri_count; ++i)
+				if(rtm::intersect(tris[i].tri, ray, hit))
+					hit.id = tris[i].id;
 
 			_tri_pipline.write(ray_id);
 			_tri_isect_queue.pop();

@@ -3,7 +3,6 @@
 #include "units/trax/unit-tp.hpp"
 #include "units/trax/unit-rt-core.hpp"
 #include "units/trax/unit-prt-core.hpp"
-#include "units/trax/unit-treelet-rt-core.hpp"
 
 namespace Arches {
 

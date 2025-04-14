@@ -76,11 +76,7 @@ private:
 		{
 			uint8_t data[1];
 			Treelet::Node node;
-			struct
-			{
-				Treelet::Triangle tris[3];
-				uint num_tris;
-			};
+			rtm::FTB ftb;
 		};
 
 		StagingBuffer() {}
@@ -220,7 +216,7 @@ private:
 	}
 
 	bool _try_queue_node(uint ray_id, uint treelet_id, uint node_id);
-	bool _try_queue_tri(uint ray_id, uint treelet_id, uint tri_offset, uint num_tris);
+	bool _try_queue_tri(uint ray_id, uint treelet_id, uint tri_id);
 	bool _try_queue_prefetch(paddr_t addr, uint size, uint cache_mask);
 
 	void _read_requests();

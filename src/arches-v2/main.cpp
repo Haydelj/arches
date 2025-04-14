@@ -3,7 +3,6 @@
 #include "shared-utils.hpp"
 #include "trax.hpp"
 #include "dual-streaming.hpp"
-#include "ric.hpp"
 #include "strata.hpp"
 #include "strata-rt.hpp"
 
@@ -30,10 +29,6 @@ int main(int argc, char* argv[])
 	else if (sim_config.get_string("arch_name") == "Dual-Streaming")
 	{
 		Arches::DualStreaming::run_sim_dual_streaming(sim_config);
-	}
-	else if(sim_config.get_string("arch_name") == "RIC")
-	{
-		Arches::RIC::run_sim_ric(sim_config);
 	}
 	
 	return 0;

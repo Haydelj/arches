@@ -3,7 +3,7 @@
 #include "int.hpp"
 
 namespace rtm {
-    
+
 template<uint BITS>
 struct BitArray
 {

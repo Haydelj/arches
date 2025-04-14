@@ -107,6 +107,8 @@ inline bool compress(const uint* prims, uint num_prims, const uint prim_id0, con
 
 inline uint decompress(const rtm::FTB& block, uint strip_id, rtm::IntersectionTriangle* tris)
 {
+	assert(block.num_tris <= FTB::MAX_PRIMS);
+
 	uint bits_per_index = log2i(block.num_vrts) + 1;
 	uint ind_size = bits_per_index * 3 * block.num_tris;
 

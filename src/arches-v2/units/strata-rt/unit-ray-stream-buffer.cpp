@@ -149,16 +149,6 @@ void UnitRayStreamBuffer::clock_fall()
 					&& !_treelet_states[tm_state.current_treelet].rays.empty())
 				{
 					uint8_t pf_mask = 0x0;
-					if(_treelet_states[tm_state.current_treelet].first_ray)
-					{
-						for(uint i = 0; i < 8; ++i)
-						{
-							float a = _cheat_treelets[tm_state.current_treelet].median_page_sah[i];
-							uint pf = std::powf(1.0f - a, _treelet_states[tm_state.current_treelet].rays.size()) < 0.75;
-							pf_mask |= pf << i;
-						}
-						_treelet_states[tm_state.current_treelet].first_ray = false;
-					}
 
 					const MemoryRequest& req = tm_state.ray_load_queue.front();
 					STRaTARTKernel::RayData ray_data = _treelet_states[tm_state.current_treelet].rays.front();

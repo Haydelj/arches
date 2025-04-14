@@ -279,7 +279,7 @@ inline bool intersect(const rtm::CompressedWideTreeletBVH::Treelet* treelets, co
 			uint k = restart_trail.get(level);
 
 			uint nodes_pushed = 0;
-			const rtm::WideTreeletBVH::Treelet::Node node = treelets[treelet_id].nodes[current_entry.data.child_index].decompress();
+			const rtm::WideTreeletBVH::Treelet::Node node = decompress(treelets[treelet_id].nodes[current_entry.data.child_index]);
 			for(uint i = 0; i < rtm::WideTreeletBVH::WIDTH; ++i)
 			{
 				if(!node.is_valid(i)) continue;

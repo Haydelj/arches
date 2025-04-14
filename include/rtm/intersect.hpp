@@ -8,7 +8,7 @@
 namespace rtm
 {
 
-inline float intersect(const rtm::AABB& aabb, const rtm::Ray& ray, const rtm::vec3& inv_d)
+inline float intersect(const AABB& aabb, const rtm::Ray& ray, const rtm::vec3& inv_d)
 {
 	rtm::vec3 t0 = (aabb.min - ray.o) * inv_d;
 	rtm::vec3 t1 = (aabb.max - ray.o) * inv_d;

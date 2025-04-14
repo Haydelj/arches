@@ -21,7 +21,7 @@ public:
 
 	struct Treelet
 	{
-		const static uint SIZE = WideTreeletBVH::Treelet::SIZE;
+		const static uint SIZE = 64 << 10;
 		const static uint PAGE_SIZE = (8 << 10);
 
 		struct alignas(64) Node
@@ -42,8 +42,8 @@ public:
 				};
 			};
 
-			uint64_t base_child_index : 16;	//base offset in streamlined child node array
-			uint64_t base_triangle_index : 20;	//base offset in streamlined primitive array
+			uint64_t base_child_index : 18;	//base offset in streamlined child node array
+			uint64_t base_triangle_index : 18;	//base offset in streamlined primitive array
 			uint64_t base_treelet_index : 20;	//base offset in streamlined primitive array
 			uint64_t e0 : 8;
 			vec3 p;
@@ -52,74 +52,13 @@ public:
 
 			CompressedData mdata[WIDTH];
 			QAABB8 qaabb[WIDTH];
-
-			WideTreeletBVH::Treelet::Node decompress() const
-			{
-				WideTreeletBVH::Treelet::Node node;
-
-				uint32_t e0u32 = uint32_t(e0) << 23;
-				uint32_t e1u32 = uint32_t(e1) << 23;
-				uint32_t e2u32 = uint32_t(e2) << 23;
-
-				float e0f = *reinterpret_cast<float*>(&e0u32);
-				float e1f = *reinterpret_cast<float*>(&e1u32);
-				float e2f = *reinterpret_cast<float*>(&e2u32);
-
-				for(int i = 0; i < WIDTH; i++)
-				{
-					node.aabb[i].min.x = p.x + e0f * float(qaabb[i].min[0]);
-					node.aabb[i].min.y = p.y + e1f * float(qaabb[i].min[1]);
-					node.aabb[i].min.z = p.z + e2f * float(qaabb[i].min[2]);
-					node.aabb[i].max.x = p.x + e0f * float(qaabb[i].max[0]);
-					node.aabb[i].max.y = p.y + e1f * float(qaabb[i].max[1]);
-					node.aabb[i].max.z = p.z + e2f * float(qaabb[i].max[2]);
-
-					node.data[i].is_int = mdata[i].is_int;
-					if(mdata[i].is_int)
-					{
-						node.data[i].is_child_treelet = mdata[i].is_child_treelet;
-						if(mdata[i].is_child_treelet)
-						{
-							node.data[i].child_index = (uint32_t)base_treelet_index + mdata[i].offset;
-						}
-						else
-						{
-							node.data[i].child_index = (uint32_t)base_child_index + mdata[i].offset;
-						}
-					}
-					else
-					{
-						node.data[i].num_tri = mdata[i].num_tris;
-						node.data[i].triangle_index = (uint32_t)base_triangle_index + mdata[i].offset * sizeof(Triangle) / sizeof(uint32_t);
-					}
-				}
-
-				return node;
-			}
-
-
-			AABB aabb()
-			{
-				AABB aabb;
-				WideTreeletBVH::Treelet::Node node = decompress();
-					for(uint i = 0; i < WIDTH; ++i)
-						if(node.is_valid(i))
-							aabb.add(node.aabb[i]);
-				return aabb;
-			}
-
-		};
-
-		struct Triangle
-		{
-			rtm::Triangle tri;
-			uint          id;
 		};
 
 		union
 		{
-			uint8_t  data[SIZE];
 			Node     nodes[1];
+			FTB	     prims[1];
+			uint8_t  data[SIZE];
 		};
 
 		Treelet() {}
@@ -133,59 +72,24 @@ public:
 	std::vector<WideTreeletBVH::Treelet::Header> treelet_headers;
 
 	CompressedWideTreeletBVH() {}
-	CompressedWideTreeletBVH(const rtm::NVCWBVH& bvh, const rtm::Mesh& mesh)
+	CompressedWideTreeletBVH(const rtm::NVCWBVH& bvh, const FTB* prim_data)
 	{
-		build(bvh, mesh);
+		build(bvh, prim_data);
 	}
-
-	//void fill_page_median_sah(CompressedWideTreeletBVH::Treelet& treelet)
-	//{
-	//	uint nodes_per_page = Treelet::PAGE_SIZE / sizeof(Treelet::Node);
-	//	float rsa = treelet.nodes[0].aabb().surface_area();
-	//	for(uint i = 0; i < 8; ++i)
-	//	{
-	//		std::vector<float> sal;
-	//		for(uint j = 0; j < (i == 0 ? nodes_per_page - 1 : nodes_per_page); ++j)
-	//		{
-	//			uint node = i * nodes_per_page + j;
-	//			if(node >= treelet.header.num_nodes)
-	//			{
-	//				sal.push_back(0.0);
-	//			}
-	//			else
-	//			{
-	//				float sa = treelet.nodes[node].aabb().surface_area() / rsa;
-	//				sal.push_back(sa);
-	//			}
-	//		}
-
-	//		float m_sah = 0.0f;
-	//		if(!sal.empty())
-	//		{
-	//			std::sort(sal.begin(), sal.end());
-	//			m_sah = sal[sal.size() / 2];
-	//		}
-
-	//		uint rays = 0;
-	//		for(; rays < 15; ++rays)
-	//			if(std::powf(1.0f - m_sah, 1 << rays) < (1.0 - 0.5f))
-	//				break;
-
-	//		treelet.header.page_sah[i] = m_sah;
-	//	}
-	//}
-
-	uint get_node_size(uint node, const rtm::NVCWBVH& bvh, const rtm::Mesh& mesh)
+	
+	uint get_node_size(const rtm::NVCWBVH::Node& node)
 	{
 		uint node_size = sizeof(CompressedWideTreeletBVH::Treelet::Node);
 		for(uint i = 0; i < WIDTH; ++i)
-			if(!bvh.nodes[node].is_int(i))
-				node_size += sizeof(CompressedWideTreeletBVH::Treelet::Triangle) * bvh.nodes[node].num_prims(i);
+			if(!node.is_int(i))
+				node_size += sizeof(CompressedWideTreeletBVH::Treelet::Node) * node.num_prims(i);
 		return node_size;
 	}
 
-	void build(const rtm::NVCWBVH& bvh, const rtm::Mesh& mesh, uint max_cut_size = 1024)
+	void build(const rtm::NVCWBVH& bvh, const FTB* prim_data)
 	{
+		static_assert(sizeof(Treelet::Node) == sizeof(FTB));
+		uint max_cut_size = 1024;
 		printf("Building Compressed Wide Treelet BVH\n");
 		size_t usable_space = Treelet::SIZE;
 
@@ -196,7 +100,7 @@ public:
 		std::vector<float> best_cost;
 		for(uint i = 0; i < bvh.nodes.size(); ++i)
 		{
-			footprint.push_back(get_node_size(i, bvh, mesh));
+			footprint.push_back(get_node_size(bvh.nodes[i]));
 			total_footprint += footprint.back();
 
 			AABB aabb;
@@ -397,13 +301,14 @@ public:
 
 			CompressedWideTreeletBVH::Treelet& treelet = treelets[treelet_index];
 
-			uint base_triangle_index = odered_nodes.size() * (sizeof(CompressedWideTreeletBVH::Treelet::Node&) / 4);
+			uint base_triangle_index = odered_nodes.size();
 			for(uint i = 0; i < odered_nodes.size(); ++i)
 			{
 				uint node_id = odered_nodes[i];
 				assert(node_map.find(node_id) != node_map.end());
 
 				const rtm::NVCWBVH::Node& cwnode = bvh.nodes[node_id];
+				const rtm::WBVH::Node wnode = decompress(cwnode);
 				CompressedWideTreeletBVH::Treelet::Node& tnode = treelets[treelet_index].nodes[i];
 
 				tnode.e0 = cwnode.e0;
@@ -433,15 +338,14 @@ public:
 				tnode.base_treelet_index = base_treelet_index;
 				tnode.base_triangle_index = base_triangle_index;
 
-				uint triangle_offset = 0;
-
 				for(uint j = 0; j < WIDTH; ++j)
 				{
-					//tnode.qaabb[j] = cwnode.qaabb[j];
+					tnode.qaabb[j] = cwnode.qaabb[j];
 					tnode.mdata[j].is_int = cwnode.is_int(j);
+					tnode.mdata[j].num_tris = cwnode.num_prims(j);
 					if(tnode.mdata[j].is_int)
 					{
-						uint child_node_id = decompress(cwnode).data[j].child_index;
+						uint child_node_id = wnode.data[j].child_index;
 						if(root_node_treelet.find(child_node_id) != root_node_treelet.end())
 						{
 							tnode.mdata[j].is_child_treelet = 1;
@@ -457,28 +361,15 @@ public:
 							tnode.mdata[j].offset = offset;
 						}
 					}
-					else
+					else if(tnode.mdata[j].num_tris > 0)
 					{
-						assert(triangle_offset < 32);
-						tnode.mdata[j].num_tris = cwnode.num_prims(j);
-						tnode.mdata[j].offset = triangle_offset;
-
-						CompressedWideTreeletBVH::Treelet::Triangle* tris = (CompressedWideTreeletBVH::Treelet::Triangle*)((uint32_t*)treelet.nodes + base_triangle_index) + tnode.mdata[j].offset;
-						triangle_offset += cwnode.num_prims(j);
-						
-						for(uint k = 0; k < cwnode.num_prims(j); ++k)
-						{
-							uint tri_id = decompress(cwnode).data[j].prim_index + k;
-							tris[k].tri = mesh.get_triangle(tri_id);
-							tris[k].id = tri_id;
-						}
-
+						assert(cwnode.num_prims(j) == 1);
+						tnode.mdata[j].offset = cwnode.mdata[j].offset;
+						treelet.prims[tnode.base_triangle_index + tnode.mdata[j].offset] = prim_data[wnode.data[j].child_index];
+						base_triangle_index++;
 					}
 				}
-				base_triangle_index += triangle_offset * sizeof(CompressedWideTreeletBVH::Treelet::Triangle) / 4;
 			}
-
-			//fill_page_median_sah(treelet);
 		}
 
 		printf("Built Compressed Wide Treelet BVH\n");
@@ -489,6 +380,52 @@ public:
 #endif
 
 };
+
+
+inline WideTreeletBVH::Treelet::Node decompress(const CompressedWideTreeletBVH::Treelet::Node& cwtnode)
+{
+	WideTreeletBVH::Treelet::Node node;
+
+	uint32_t e0u32 = uint32_t(cwtnode.e0) << 23;
+	uint32_t e1u32 = uint32_t(cwtnode.e1) << 23;
+	uint32_t e2u32 = uint32_t(cwtnode.e2) << 23;
+
+	float e0f = *reinterpret_cast<float*>(&e0u32);
+	float e1f = *reinterpret_cast<float*>(&e1u32);
+	float e2f = *reinterpret_cast<float*>(&e2u32);
+
+	for(int i = 0; i < CompressedWideTreeletBVH::WIDTH; i++)
+	{
+		node.aabb[i].min.x = cwtnode.p.x + e0f * float(cwtnode.qaabb[i].min[0]);
+		node.aabb[i].min.y = cwtnode.p.y + e1f * float(cwtnode.qaabb[i].min[1]);
+		node.aabb[i].min.z = cwtnode.p.z + e2f * float(cwtnode.qaabb[i].min[2]);
+		node.aabb[i].max.x = cwtnode.p.x + e0f * float(cwtnode.qaabb[i].max[0]);
+		node.aabb[i].max.y = cwtnode.p.y + e1f * float(cwtnode.qaabb[i].max[1]);
+		node.aabb[i].max.z = cwtnode.p.z + e2f * float(cwtnode.qaabb[i].max[2]);
+
+		node.data[i].is_int = cwtnode.mdata[i].is_int;
+		if(cwtnode.mdata[i].is_int)
+		{
+			node.data[i].is_child_treelet = cwtnode.mdata[i].is_child_treelet;
+			if(cwtnode.mdata[i].is_child_treelet)
+			{
+				node.data[i].child_index = (uint32_t)cwtnode.base_treelet_index + cwtnode.mdata[i].offset;
+			}
+			else
+			{
+				node.data[i].child_index = (uint32_t)cwtnode.base_child_index + cwtnode.mdata[i].offset;
+			}
+		}
+		else
+		{
+			node.data[i].num_tri = cwtnode.mdata[i].num_tris;
+			node.data[i].triangle_index = (uint32_t)cwtnode.base_triangle_index + cwtnode.mdata[i].offset;
+		}
+	}
+
+	return node;
+};
+
 
 
 } // namespace rtm

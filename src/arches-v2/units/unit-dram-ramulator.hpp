@@ -36,7 +36,7 @@ public:
 		uint num_ports{1};
 		uint num_controllers{1};
 		uint64_t partition_stride{0x0ull};
-		double clock_ratio;
+		double clock_ratio{4.0f};
 	};
 
 private:

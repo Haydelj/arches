@@ -28,6 +28,7 @@ struct DualStreamingKernelArgs
 #else
 	rtm::WideTreeletBVH::Treelet* treelets;
 #endif
+	rtm::WideTreeletBVH::Treelet::Header* treelet_headers;
 	rtm::Triangle* tris;
 	rtm::Ray* rays;
 	uint64_t num_treelets;

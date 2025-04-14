@@ -188,11 +188,7 @@ private:
 
 typedef Units::UnitCache UnitL2Cache;
 typedef Units::UnitDRAMRamulator UnitDRAM;
-#if	DS_USE_COMPRESSED_WIDE_BVH
 typedef rtm::CompressedWideTreeletBVH::Treelet SceneSegment;
-#else
-typedef rtm::WideTreeletBVH::Treelet SceneSegment;
-#endif
 
 static DualStreamingKernelArgs initilize_buffers(Units::UnitMainMemoryBase* main_memory, paddr_t& heap_address, const SimulationConfig& sim_config, uint page_size)
 {
@@ -233,13 +229,14 @@ static DualStreamingKernelArgs initilize_buffers(Units::UnitMainMemoryBase* main
 	args.rays = write_vector(main_memory, CACHE_BLOCK_SIZE, rays, heap_address);
 
 #if DS_USE_COMPRESSED_WIDE_BVH
-	rtm::WBVH wbvh(bvh2, build_objects);
+	rtm::WBVH wbvh(bvh2, build_objects, &mesh, false);
 	mesh.reorder(build_objects);
 
 	rtm::NVCWBVH cwbvh(wbvh);
 
-	rtm::CompressedWideTreeletBVH cwtbvh(cwbvh, mesh);
+	rtm::CompressedWideTreeletBVH cwtbvh(cwbvh, wbvh.ft_blocks.data());
 	args.treelets = write_vector(main_memory, page_size, cwtbvh.treelets, heap_address);
+	args.treelet_headers = write_vector(main_memory, page_size, cwtbvh.treelet_headers, heap_address);
 	args.num_treelets = cwtbvh.treelets.size();
 #else
 	rtm::WBVH wbvh(bvh2, build_objects);
@@ -264,35 +261,30 @@ static void run_sim_dual_streaming(const SimulationConfig& sim_config)
 
 #if 1 //Modern config
 	double clock_rate = 2.0e9;
-	uint num_threads = sim_config.get_int("num_threads");
-	uint num_tps = sim_config.get_int("num_tps");
-	uint num_tms = sim_config.get_int("num_tms");
+	uint num_threads = 8;
+	uint num_tps = 64;
+	uint num_tms = 64;
 	uint64_t stack_size = 512;
 
 	//Memory
-	uint64_t block_size = CACHE_BLOCK_SIZE;
 	uint num_partitions = 16;
-	uint partition_stride = 1 << 11; 
-	uint64_t partition_mask = generate_nbit_mask(log2i(num_partitions)) << log2i(partition_stride);
+	uint partition_stride = 1 << 13; 
 
 	//DRAM
 	UnitDRAM::Configuration dram_config;
 	dram_config.config_path = project_folder + "build\\src\\arches-v2\\config-files\\gddr6_pch_config.yaml";
 	dram_config.size = 4ull << 30; //4GB
 	dram_config.num_controllers = num_partitions;
-	dram_config.partition_stride = partition_mask;
+	dram_config.partition_stride = partition_stride;
 
 	//L2$
 	UnitL2Cache::Configuration l2_config;
 	l2_config.level = 2;
-	l2_config.block_size = block_size;
-	l2_config.size = sim_config.get_int("l2_size");
-	l2_config.associativity = sim_config.get_int("l2_associativity");
+	l2_config.size = 4 << 20;
+	l2_config.associativity = 16;
 	l2_config.num_ports = num_tms;
 	l2_config.num_slices = num_partitions;
-	l2_config.slice_select_mask = partition_mask;
 	l2_config.num_banks = 2;
-	l2_config.bank_select_mask = generate_nbit_mask(log2i(l2_config.num_banks)) << log2i(block_size);
 	l2_config.crossbar_width = 64;
 	l2_config.num_mshr = 192;
 	l2_config.latency = 170;
@@ -306,14 +298,12 @@ static void run_sim_dual_streaming(const SimulationConfig& sim_config)
 	//L1d$
 	UnitL1Cache::Configuration l1d_config;
 	l1d_config.level = 1;
-	l1d_config.block_size = block_size;
-	l1d_config.size = sim_config.get_int("l1_size");
-	l1d_config.associativity = sim_config.get_int("l1_associativity");
+	l1d_config.size = 64 << 10;
+	l1d_config.associativity = 32;
 	l1d_config.num_banks = 4;
-	l1d_config.bank_select_mask = generate_nbit_mask(log2i(l1d_config.num_banks)) << log2i(block_size);
 	l1d_config.crossbar_width = 4;
 	l1d_config.num_mshr = 256;
-	l1d_config.latency = 39;
+	l1d_config.latency = 20;
 
 	UnitL1Cache::PowerConfig l1d_power_config;
 	l1d_power_config.leakage_power = 7.19746e-3f * l1d_config.num_banks * num_tms;
@@ -326,7 +316,7 @@ static void run_sim_dual_streaming(const SimulationConfig& sim_config)
 	scene_buffer_config.size = 4 * 1024 * 1024; // 4MB
 	scene_buffer_config.latency = 4;
 	scene_buffer_config.num_banks = 32;
-	scene_buffer_config.bank_select_mask = generate_nbit_mask(log2i(scene_buffer_config.num_banks)) << log2i(block_size);
+	scene_buffer_config.bank_select_mask = generate_nbit_mask(log2i(scene_buffer_config.num_banks)) << log2i(CACHE_BLOCK_SIZE);
 
 	Units::DualStreaming::UnitSceneBuffer::PowerConfig scene_buffer_power_config;
 	scene_buffer_power_config.leakage_power = 53.7192e-3f * scene_buffer_config.num_banks;
@@ -335,9 +325,6 @@ static void run_sim_dual_streaming(const SimulationConfig& sim_config)
 #else //Legacy config
 
 #endif
-
-	_assert(block_size <= MemoryRequest::MAX_SIZE);
-	_assert(block_size == CACHE_BLOCK_SIZE);
 
 	ISA::RISCV::InstructionTypeNameDatabase::get_instance()[ISA::RISCV::InstrType::CUSTOM0] = "FCHTHRD";
 	ISA::RISCV::InstructionTypeNameDatabase::get_instance()[ISA::RISCV::InstrType::CUSTOM1] = "BOXISECT";
@@ -407,7 +394,7 @@ static void run_sim_dual_streaming(const SimulationConfig& sim_config)
 	scene_buffer_config.segment_size = sizeof(SceneSegment);
 	scene_buffer_config.num_ports = num_tms;
 	scene_buffer_config.row_size = partition_stride;
-	scene_buffer_config.block_size = block_size;
+	scene_buffer_config.block_size = CACHE_BLOCK_SIZE;
 	scene_buffer_config.num_channels = num_partitions;
 	scene_buffer_config.main_mem = &dram;
 	scene_buffer_config.main_mem_port_offset = *unused_dram_ports.begin();
@@ -423,12 +410,12 @@ static void run_sim_dual_streaming(const SimulationConfig& sim_config)
 	stream_scheduler_config.traversal_scheme = sim_config.get_int("traversal_scheme");
 	stream_scheduler_config.weight_scheme = sim_config.get_int("weight_scheme");
 	stream_scheduler_config.num_tms = num_tms;
-	stream_scheduler_config.block_size = block_size;
+	stream_scheduler_config.block_size = CACHE_BLOCK_SIZE;
 	stream_scheduler_config.row_size = partition_stride;
 	stream_scheduler_config.num_root_rays = kernel_args.framebuffer_size;
 	stream_scheduler_config.treelet_addr = *(paddr_t*)&kernel_args.treelets;
 	stream_scheduler_config.heap_addr = *(paddr_t*)&heap_address;
-	stream_scheduler_config.cheat_treelets = nullptr;// (rtm::WideTreeletBVH::Treelet*)&dram._data_u8[(size_t)kernel_args.treelets];
+	stream_scheduler_config.cheat_treelets = (rtm::WideTreeletBVH::Treelet::Header*)&dram._data_u8[(size_t)kernel_args.treelet_headers];
 	stream_scheduler_config.main_mem = &dram;
 	stream_scheduler_config.main_mem_port_stride = dram_ports_per_controller;
 	stream_scheduler_config.main_mem_port_offset = *unused_dram_ports.begin();
