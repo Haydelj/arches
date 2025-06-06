@@ -1,0 +1,68 @@
+cff-version: 1.0.0
+message: "If you use Arches, please cite it as below."
+authors:
+- family-names: "Haydel"
+  given-names: "Jacob"
+  orcid: "https://orcid.org/0009-0005-5488-2381"
+- family-names: "Bhokare"
+  given-names: "Gaurav"
+  orcid: "https://orcid.org/0009-0004-5802-2349"
+- family-names: "Zeng"
+  given-names: "Kunnong"
+  orcid: "https://orcid.org/0009-0002-1976-6340"
+- family-names: "Hong"
+  given-names: "Pengpei"
+  orcid: "https://orcid.org/0009-0005-6345-0927"
+- family-names: "Kondguli"
+  given-names: "Sushant"
+  orcid: "https://orcid.org/0000-0002-7295-4626"
+- family-names: "Budge"
+  given-names: "Brian"
+  orcid: "https://orcid.org/0009-0005-9305-3260"
+- family-names: "Brunvand"
+  given-names: "Erik"
+  orcid: "https://orcid.org/0000-0001-8881-927X"
+- family-names: "Yuksel"
+  given-names: "Cem"
+  orcid: "https://orcid.org/0000-0002-0122-4159"
+title: "Arches - Cycle-Level Hardware Architecture Simulator"
+version: 1.0.0
+#doi: 10.5281/zenodo.1234
+date-released: 2025-06-06
+url: "https://github.com/Utah-Graphics-Lab/arches"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Haydel"
+    given-names: "Jacob"
+    orcid: "https://orcid.org/0009-0005-5488-2381"
+  - family-names: "Bhokare"
+    given-names: "Gaurav"
+    orcid: "https://orcid.org/0009-0004-5802-2349"
+  - family-names: "Zeng"
+    given-names: "Kunnong"
+    orcid: "https://orcid.org/0009-0002-1976-6340"
+  - family-names: "Hong"
+    given-names: "Pengpei"
+    orcid: "https://orcid.org/0009-0005-6345-0927"
+  - family-names: "Kondguli"
+    given-names: "Sushant"
+    orcid: "https://orcid.org/0000-0002-7295-4626"
+  - family-names: "Budge"
+    given-names: "Brian"
+    orcid: "https://orcid.org/0009-0005-9305-3260"
+  - family-names: "Brunvand"
+    given-names: "Erik"
+    orcid: "https://orcid.org/0000-0001-8881-927X"
+  - family-names: "Yuksel"
+    given-names: "Cem"
+    orcid: "https://orcid.org/0000-0002-0122-4159"
+  #doi: "10.0000/00000"
+  journal: "Computer Graphics Forum (Proceedings of HPG 2025)"
+  month: 6
+  #start: 1 # First page number
+  #end: 10 # Last page number
+  title: "Arches: A Cycle Level Simulator for Exploring Massively Parallel Ray Tracing Architectures"
+  issue: 8
+  volume: 44
+  year: 2025
