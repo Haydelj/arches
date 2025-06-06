@@ -320,18 +320,16 @@ inline bool intersect(const rtm::CompressedWideTreeletBVH::Treelet* treelets, co
 		{
 			//if(ENABLE_PRINTS)
 			//	printf("TRI: %d:%d\n", current_entry.data.triangle_index, current_entry.data.num_tri);
-		#if 1
-			for(uint i = 0; i < current_entry.data.num_tri; ++i)
+		#if 0
+			for(uint j = 0; j < current_entry.data.num_tri; ++j)
 			{
-				uint32_t offset = current_entry.data.triangle_index + i * (sizeof(rtm::WideTreeletBVH::Treelet::Triangle) / 4);
-				const rtm::WideTreeletBVH::Treelet::Triangle& tri = *(rtm::WideTreeletBVH::Treelet::Triangle*)((uint32_t*)treelets[treelet_id].nodes + offset);
-				if(_intersect(tri.tri, ray, hit))
-				{
-					hit.id = tri.id;
-					if(first_hit) return true;
-					else found_hit = true;
-				}
-			}
+				rtm::IntersectionTriangle tris[rtm::FTB::MAX_PRIMS];
+				uint tri_count = rtm::decompress(treelets[treelet_id].prims[current_entry.data.triangle_index], current_entry.data.triangle_index, tris);
+
+				for(uint i = 0; i < tri_count; ++i)
+					if(_intersect(tris[i].tri, ray, hit))
+						hit.id = current_entry.data.triangle_index * rtm::FTB::MAX_PRIMS + i;
+		}
 		#else
 			if(current_entry.t < hit.t)
 			{

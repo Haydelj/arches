@@ -26,7 +26,7 @@ class WBVH
 {
 public:
 	const static uint WIDTH = 6;
-	const static uint MAX_PRIMS = 3;
+	const static uint MAX_PRIMS = 1;
 	const static uint LEAF_RATIO = 1;
 
 	const static uint MAX_FOREST_SIZE = WIDTH - 1;
@@ -459,17 +459,19 @@ struct RestartTrail
 
 	uint get(uint level) const
 	{
+		assert(level < 64 / BITS_PER_LEVEL);
 		return data.read(level * BITS_PER_LEVEL, BITS_PER_LEVEL);
 	}
 
 	void set(uint level, uint value)
 	{
+		assert(level < 64 / BITS_PER_LEVEL);
 		data.write(level * BITS_PER_LEVEL, BITS_PER_LEVEL, value);
 	}
 
 	void clear(uint start_level)
 	{
-		for(uint i = start_level; i < 32; ++i)
+		for(uint i = start_level; i < 64 / BITS_PER_LEVEL; ++i)
 			set(i, 0);
 	}
 
@@ -480,7 +482,7 @@ struct RestartTrail
 
 	void mark_done()
 	{
-		get(0) == N + 1;
+		set(0, N);
 	}
 };
 

@@ -120,15 +120,7 @@ namespace TRaX {
 typedef Units::UnitDRAMRamulator UnitDRAM;
 typedef Units::UnitCache UnitL2Cache;
 typedef Units::UnitCache UnitL1Cache;
-//typedef Units::TRaX::UnitTreeletRTCore UnitRTCore;
-//typedef Units::TRaX::UnitRTCore<rtm::NVCWBVH::Node, rtm::Triangle> UnitRTCore;
-//typedef Units::TRaX::UnitRTCore<rtm::NVCWBVH::Node, rtm::TriangleStrip> UnitRTCore;
-
-
-//typedef rtm::DGFMesh::Block PrimBlocks;
-//typedef rtm::QTB PrimBlocks;
 typedef rtm::FTB PrimBlocks;
-//typedef rtm::Triangle PrimBlocks;
 
 #if USE_HEBVH
 typedef Units::TRaX::UnitRTCore<rtm::HECWBVH::Node, PrimBlocks> UnitRTCore;
@@ -172,14 +164,6 @@ static TRaXKernelArgs initilize_buffers(uint8_t* main_memory, paddr_t& heap_addr
 		args.rays = write_vector(main_memory, 256, rays, heap_address);
 	}
 
-	rtm::DGFMesh dgf_mesh(datasets_folder + scene_name + ".dgf");
-
-	std::vector<rtm::BVH2::BuildObject> dgf_bo;
-	dgf_mesh.get_build_objects(dgf_bo);
-
-	rtm::BVH2 dgf_bvh2(cache_folder + scene_name + ".dgf.bvh", dgf_bo, 2);
-	dgf_mesh.reorder(dgf_bo);
-
 #if USE_HEBVH
 	//DGF
 	if(typeid(PrimBlocks) == typeid(rtm::DGFMesh::Block))
@@ -211,26 +195,6 @@ static TRaXKernelArgs initilize_buffers(uint8_t* main_memory, paddr_t& heap_addr
 		args.ft_blocks = (rtm::FTB*)args.nodes;
 	}
 #else
-	//DGF
-	if(typeid(PrimBlocks) == typeid(rtm::DGFMesh::Block))
-	{
-		rtm::WBVH wbvh(dgf_bvh2, dgf_bo);
-		dgf_mesh.reorder(dgf_bo);
-		rtm::NVCWBVH cwbvh(wbvh);
-		args.nodes = write_vector(main_memory, 256, cwbvh.nodes, heap_address);
-		args.dgf_blocks = write_vector(main_memory, 256, dgf_mesh.blocks, heap_address);
-	}
-
-	//QTB
-	if(typeid(PrimBlocks) == typeid(rtm::QTB))
-	{
-		rtm::WBVH wbvh(bvh2, bos, &mesh, true);
-		mesh.reorder(bos);
-		rtm::NVCWBVH cwbvh(wbvh);
-		args.nodes = write_vector(main_memory, 256, cwbvh.nodes, heap_address);
-		args.qt_blocks = write_vector(main_memory, 256, wbvh.qt_blocks, heap_address);
-	}
-
 	//FTB
 	if(typeid(PrimBlocks) == typeid(rtm::FTB))
 	{
@@ -238,19 +202,8 @@ static TRaXKernelArgs initilize_buffers(uint8_t* main_memory, paddr_t& heap_addr
 		mesh.reorder(bos);
 		rtm::NVCWBVH cwbvh(wbvh);
 		args.nodes = write_vector(main_memory, 256, cwbvh.nodes, heap_address);
+		//args.nodes = write_vector(main_memory, 256, wbvh.nodes, heap_address);
 		args.ft_blocks = write_vector(main_memory, 256, wbvh.ft_blocks, heap_address);
-	}
-
-	//Tri
-	if(typeid(PrimBlocks) == typeid(rtm::Triangle))
-	{
-		rtm::WBVH wbvh(bvh2, bos);
-		mesh.reorder(bos);
-		rtm::NVCWBVH cwbvh(wbvh);
-		args.nodes = write_vector(main_memory, 256, cwbvh.nodes, heap_address);
-		std::vector<rtm::Triangle> tris;
-		mesh.get_triangles(tris);
-		args.tris = write_vector(main_memory, 256, tris, heap_address);
 	}
 #endif
 
@@ -387,10 +340,10 @@ static void run_sim_trax(SimulationConfig& sim_config)
 #elif 1 //Turing spec
 #if 1 //RTX 2080
 	double core_clock = 1515.0e6;
-	uint num_threads = 4;
+	uint num_threads = 8;
 	uint num_tps = 64;
 	uint num_tms = 46;
-	uint64_t stack_size = 512;
+	uint64_t stack_size = 1024;
 
 	double dram_clock = 3500.0e6;
 	uint num_partitions = 8;
@@ -440,7 +393,7 @@ static void run_sim_trax(SimulationConfig& sim_config)
 	l1d_config.miss_alloc = true;
 	l1d_config.size = 64 << 10;
 	l1d_config.associativity = 32;
-	l1d_config.num_banks = 4;
+	l1d_config.num_banks = 16;
 	l1d_config.crossbar_width = l1d_config.num_banks;
 	l1d_config.num_mshr = 256;
 	l1d_config.num_subentries = 16;
@@ -449,7 +402,7 @@ static void run_sim_trax(SimulationConfig& sim_config)
 	UnitL1Cache::PowerConfig l1d_power_config;
 
 	UnitRTCore::Configuration rtc_config;
-	rtc_config.max_rays = 32;
+	rtc_config.max_rays = 64;
 	rtc_config.num_cache_ports = 2;
 #else //TRaX 1.0
 	double core_clock = 1000.0e6;
@@ -637,14 +590,7 @@ static void run_sim_trax(SimulationConfig& sim_config)
 	#if TRAX_USE_RT_CORE
 		rtc_config.num_clients = num_tps;
 		rtc_config.node_base_addr = (paddr_t)kernel_args.nodes;
-		if(typeid(PrimBlocks) == typeid(rtm::DGFMesh::Block))
-			rtc_config.tri_base_addr = (paddr_t)kernel_args.dgf_blocks;
-		if(typeid(PrimBlocks) == typeid(rtm::QTB))
-			rtc_config.tri_base_addr = (paddr_t)kernel_args.qt_blocks;
-		if(typeid(PrimBlocks) == typeid(rtm::FTB))
-			rtc_config.tri_base_addr = (paddr_t)kernel_args.ft_blocks;
-		if(typeid(PrimBlocks) == typeid(rtm::Triangle))
-			rtc_config.tri_base_addr = (paddr_t)kernel_args.tris;
+		rtc_config.tri_base_addr = (paddr_t)kernel_args.ft_blocks;
 		rtc_config.cache = l1ds.back();
 		rtc_config.cache_port = num_tps;
 		rtc_config.cache_port_stride = num_tps / l1d_config.num_banks;

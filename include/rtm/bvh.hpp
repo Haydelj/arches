@@ -22,7 +22,7 @@ namespace rtm {
 class BVH2
 {
 public:
-	const static uint32_t VERSION = 13; //used to validate the cache
+	const static uint32_t VERSION = 42; //used to validate the cache
 	const static uint MAX_PRIMS = 1;
 
 	struct BuildObject

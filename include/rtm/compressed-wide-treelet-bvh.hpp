@@ -338,6 +338,7 @@ public:
 				tnode.base_treelet_index = base_treelet_index;
 				tnode.base_triangle_index = base_triangle_index;
 
+				uint tri_offset = 0;
 				for(uint j = 0; j < WIDTH; ++j)
 				{
 					tnode.qaabb[j] = cwnode.qaabb[j];
@@ -363,12 +364,12 @@ public:
 					}
 					else if(tnode.mdata[j].num_tris > 0)
 					{
-						assert(cwnode.num_prims(j) == 1);
-						tnode.mdata[j].offset = cwnode.mdata[j].offset;
-						treelet.prims[tnode.base_triangle_index + tnode.mdata[j].offset] = prim_data[wnode.data[j].child_index];
-						base_triangle_index++;
+						assert(tnode.mdata[j].num_tris == 1);
+						tnode.mdata[j].offset = tri_offset++;
+						treelet.prims[tnode.base_triangle_index + tnode.mdata[j].offset] = prim_data[wnode.data[j].prim_index];
 					}
 				}
+				base_triangle_index += tri_offset;
 			}
 		}
 

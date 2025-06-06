@@ -3,7 +3,6 @@
 #include "shared-utils.hpp"
 #include "trax.hpp"
 #include "dual-streaming.hpp"
-#include "strata.hpp"
 #include "strata-rt.hpp"
 
 //global verbosity flag
@@ -17,10 +16,6 @@ int main(int argc, char* argv[])
 	if (sim_config.get_string("arch_name") == "TRaX")
 	{
 		Arches::TRaX::run_sim_trax(sim_config);
-	}
-	else if (sim_config.get_string("arch_name") == "STRaTA")
-	{
-		Arches::STRaTA::run_sim_strata(sim_config);
 	}
 	else if(sim_config.get_string("arch_name") == "STRaTA-RT")
 	{

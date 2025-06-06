@@ -32,6 +32,7 @@ public:
 		const static uint BIT_PER_BOX = NQ * 6;
 		BitArray<3 * WIDTH + BIT_PER_BOX * WIDTH> bit_array;
 
+	#ifndef __riscv
 		void set_e(uvec3 e)
 		{
 			uint min_exp = max_exp - 31;
@@ -79,9 +80,7 @@ public:
 			return offset;
 		}
 
-		Node() = default;
 
-	#ifndef __riscv
 		Node(const WBVH::Node& wnode, uint8_t max_exp) : max_exp(max_exp)
 		{
 			sizeof(Node);
@@ -140,6 +139,7 @@ public:
 			}
 		}
 	#endif
+		Node() = default;
 	};
 
 #ifndef __riscv
@@ -281,7 +281,7 @@ public:
 
 
 
-
+#ifndef __riscv
 inline WBVH::Node decompress(const HECWBVH::Node& cwnode)
 {
 	const rtm::vec3 p = cwnode.get_p();
@@ -308,5 +308,6 @@ inline WBVH::Node decompress(const HECWBVH::Node& cwnode)
 
 	return wnode;
 }
+#endif
 
 }

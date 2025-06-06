@@ -46,16 +46,12 @@ inline static void kernel(const TRaXKernelArgs& args)
 		#if defined(__riscv) && (TRAX_USE_RT_CORE)
 			_traceray<0x0u>(index, ray, hit);
 		#else
-			//intersect(args.nodes, args.dgf_blocks, ray, hit, node_steps, prim_steps);
-			//intersect(args.nodes, args.qt_blocks, ray, hit, node_steps, prim_steps);
 			intersect(args.nodes, args.ft_blocks, ray, hit, node_steps, prim_steps);
 		#endif
 
 		if(hit.id != ~0u)
 		{
 			args.framebuffer[fb_index] = rtm::RNG::hash(hit.id) | 0xff000000;
-			//args.framebuffer[fb_index] = hit.id | 0xff000000;
-			//args.framebuffer[fb_index] = encode_pixel(args.tris[hit.id].normal() * 0.5f + 0.5f);
 		}
 		else
 		{
@@ -64,9 +60,6 @@ inline static void kernel(const TRaXKernelArgs& args)
 
 		//args.framebuffer[fb_index] = encode_pixel(steps / 64.0f);
 	}
-
-	printf("Nodes: %.2f\n", (float)node_steps / args.framebuffer_size);
-	printf("Prims: %.2f\n", (float)prim_steps / args.framebuffer_size);
 }
 
 inline static void mandelbrot(const TRaXKernelArgs& args)
@@ -120,7 +113,7 @@ int main()
 int main(int argc, char* argv[])
 {
 	uint pregen_bounce = 0;
-	std::string scene_name = "san-miguel";
+	std::string scene_name = "intel-sponza";
 
 	TRaXKernelArgs args;
 	args.framebuffer_width = 1024;
@@ -142,17 +135,9 @@ int main(int argc, char* argv[])
 
 	std::vector<rtm::BVH2::BuildObject> bos;
 	rtm::Mesh mesh("../../../datasets/" + scene_name + ".obj");
-	mesh.quantize_verts();
 	mesh.get_build_objects(bos);
 	rtm::BVH2 bvh2("../../../datasets/cache/" + scene_name + ".bvh", bos, 2);
 	mesh.reorder(bos);
-	printf("\n");
-
-	std::vector<rtm::BVH2::BuildObject> dgf_bos;
-	rtm::DGFMesh dgf_mesh("../../../datasets/" + scene_name + ".dgf");
-	dgf_mesh.get_build_objects(dgf_bos);
-	rtm::BVH2 dgf_bvh2("../../../datasets/cache/" + scene_name + ".dgf.bvh", dgf_bos, 2);
-	dgf_mesh.reorder(dgf_bos);
 	printf("\n");
 
 	std::vector<rtm::Ray> rays(args.framebuffer_size);
@@ -165,41 +150,25 @@ int main(int argc, char* argv[])
 	printf("\n");
 
 #if USE_HEBVH
-	//rtm::WBVH dgf_wbvh(dgf_bvh2, dgf_bos);
-	//dgf_mesh.reorder(dgf_bos);
-	//rtm::HECWBVH hecwbvh(dgf_wbvh, (uint8_t*)dgf_mesh.blocks.data(), sizeof(rtm::DGFMesh::Block));
-	//args.nodes = hecwbvh.nodes.data();
-	//args.dgf_blocks = (rtm::DGFMesh::Block*)args.nodes;
-
-	//rtm::WBVH wbvh(bvh2, bos, &mesh, false);
-	//mesh.reorder(bos);
-	//rtm::HECWBVH hecwbvh(wbvh, (uint8_t*)wbvh.qt_blocks.data(), sizeof(rtm::QTB));
-	//args.nodes = hecwbvh.nodes.data();
-	//args.qt_blocks = (rtm::QTB*)args.nodes;
-
 	rtm::WBVH wbvh(bvh2, bos, &mesh, false);
 	mesh.reorder(bos);
 	rtm::HECWBVH hecwbvh(wbvh, (uint8_t*)wbvh.ft_blocks.data(), sizeof(rtm::FTB));
 	args.nodes = hecwbvh.nodes.data();
 	args.ft_blocks = (rtm::FTB*)args.nodes;
 #else
-	//rtm::NVCWBVH cwbvh(dgf_wbvh);
-	//args.nodes = cwbvh.nodes.data();
-	//args.dgf_blocks = dgf_mesh.blocks.data();
-
-	rtm::WBVH dgf_wbvh(dgf_bvh2, dgf_bos);
-	dgf_mesh.reorder(dgf_bos);
-	rtm::NVCWBVH cwbvh(dgf_wbvh);
-	args.nodes = cwbvh.nodes.data();
-	args.dgf_blocks = dgf_mesh.blocks.data();
+	rtm::WBVH wbvh(bvh2, bos, &mesh, false);
+	mesh.reorder(bos);
+	rtm::NVCWBVH nvcwbvh(wbvh);
+	args.nodes = nvcwbvh.nodes.data();
+	args.ft_blocks = wbvh.ft_blocks.data();
 #endif
 
 	printf("\nStarting Taveral\n");
 	auto start = std::chrono::high_resolution_clock::now();
 
 	std::vector<std::thread> threads;
-	uint thread_count = 0;
-	//uint thread_count = std::max(std::thread::hardware_concurrency() - 1u, 1u);
+	uint thread_count = 1;
+	//thread_count = std::max(std::thread::hardware_concurrency() - 1u, 1u);
 	for (uint i = 1; i < thread_count; ++i) threads.emplace_back(kernel, args);
 	kernel(args);
 	for (uint i = 1; i < thread_count; ++i) threads[i].join();

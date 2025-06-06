@@ -8,10 +8,10 @@ namespace rtm {
 struct alignas(32) FTB
 {
 	const static uint BLOCK_SIZE = 64;
-	const static uint MAX_PRIMS = 1;
+	const static uint MAX_PRIMS = 15;
 	const static uint MAX_VRTS = 15;
 
-	uint32_t prim_id0 : 29;
+	uint32_t prim_id0;
 	uint8_t num_vrts : 4; //at most 15 vrtices
 	uint8_t num_tris : 4; //at most 15 triangles
 
@@ -24,16 +24,16 @@ static_assert(sizeof(FTB) == FTB::BLOCK_SIZE);
 struct alignas(32) QTB
 {
 	const static uint BLOCK_SIZE = 128;
-	const static uint MAX_PRIMS = 31;
-	const static uint MAX_VRTS = 31;
+	const static uint MAX_PRIMS = 15;
+	const static uint MAX_VRTS = 15;
 
-	uint64_t prim_id0 : 29;
-	uint64_t exp : 8;
-	uint64_t num_vrts : 5; //at most 31 vrtices
-	uint64_t num_tris : 5; //at most 31 triangles
-	uint64_t bx : 5; //bits per plane
-	uint64_t bz : 5;
-	uint64_t by : 5;
+	uint32_t prim_id0;
+	uint32_t exp : 8;
+	uint32_t num_vrts : 4; //at most 31 vrtices
+	uint32_t num_tris : 4; //at most 31 triangles
+	uint32_t bx : 5; //bits per plane
+	uint32_t bz : 5;
+	uint32_t by : 5;
 	int16_t px;
 	int16_t py;
 	int16_t pz;
@@ -43,6 +43,7 @@ struct alignas(32) QTB
 };
 static_assert(sizeof(QTB) == QTB::BLOCK_SIZE);
 
+#ifndef __riscv
 inline bool compress(const uint* prims, uint num_prims, const uint prim_id0, const Mesh& mesh, FTB& block)
 {
 	sizeof(FTB);
@@ -80,7 +81,7 @@ inline bool compress(const uint* prims, uint num_prims, const uint prim_id0, con
 		}
 	}
 
-	uint bits_per_index = log2i(block.num_vrts) + 1;
+	uint bits_per_index = 4;
 	uint ib_size = bits_per_index * 3 * block.num_tris;
 	uint vb_size = 32 * 3 * block.num_vrts;
 
@@ -109,7 +110,7 @@ inline uint decompress(const rtm::FTB& block, uint strip_id, rtm::IntersectionTr
 {
 	assert(block.num_tris <= FTB::MAX_PRIMS);
 
-	uint bits_per_index = log2i(block.num_vrts) + 1;
+	uint bits_per_index = 4;
 	uint ind_size = bits_per_index * 3 * block.num_tris;
 
 	uint block_ptr = 0;
@@ -243,5 +244,6 @@ inline uint decompress(const rtm::QTB& block, uint strip_id, rtm::IntersectionTr
 
 	return block.num_tris;
 }
+#endif
 
 }

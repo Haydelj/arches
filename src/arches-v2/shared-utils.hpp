@@ -23,7 +23,6 @@ namespace Arches {
 
 std::string get_project_folder_path()
 {
-
 	CHAR path[MAX_PATH];
 	GetModuleFileNameA(NULL, path, MAX_PATH);
 	std::string executable_path(path);
@@ -99,6 +98,7 @@ void print_header(std::string string, uint header_length = 80)
 }
 
 const static std::vector<std::string> arch_names = {"TRaX", "STRaTA", "STRaTA-RT", "Dual-Streaming", "RIC"};
+
 
 struct SceneConfig
 {

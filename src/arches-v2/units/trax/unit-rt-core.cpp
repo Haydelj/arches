@@ -85,13 +85,7 @@ bool UnitRTCore<NT, PT>::_try_queue_tri(uint ray_id, uint tri_id)
 	paddr_t start = _tri_base_addr + tri_id * sizeof(PT);
 	if(typeid(NT) == typeid(rtm::HECWBVH::Node))
 		start = _node_base_addr + tri_id * sizeof(NT);
-
 	paddr_t end = start + sizeof(PT);
-	if(_vrt_base_addr != 0x0ull)
-	{
-		start = _tri_base_addr + tri_id * sizeof(rtm::IndexStrip);
-		end = start + sizeof(rtm::IndexStrip);
-	}
 
 	RayState& ray_state = _ray_states[ray_id];
 	ray_state.buffer.address = start;
@@ -118,32 +112,6 @@ bool UnitRTCore<NT, PT>::_try_queue_tri(uint ray_id, uint tri_id)
 
 	return true;
 }
-
-template<typename NT, typename PT>
-bool UnitRTCore<NT, PT>::_try_queue_vrts(uint ray_id)
-{
-	RayState& ray_state = _ray_states[ray_id];
-	ray_state.buffer.bytes_filled = 0;
-	ray_state.buffer.type = 2;
-
-	rtm::IndexStrip& index_strip = ray_state.buffer.index_strip;
-	for(uint i = 0; i < index_strip.num_tris + 2; ++i)
-	{
-		uint index = index_strip.inds[i];
-
-		MemoryRequest req;
-		req.type = MemoryRequest::Type::LOAD;
-		req.paddr = _vrt_base_addr + 16 * index;
-		req.size = 16;
-		req.dst.push(i, 8);
-		req.dst.push(ray_id, 10);
-		_cache_fetch_queues[ray_id % _cache_fetch_queues.size()].push(req);
-	}
-
-	return true;
-}
-
-
 
 template<typename NT, typename PT>
 bool UnitRTCore<NT, PT>::_try_queue_prefetch(paddr_t addr, uint size, uint cache_mask)
@@ -245,36 +213,9 @@ void UnitRTCore<NT, PT>::_read_returns()
 				uint offset = (ret.paddr - buffer.address);
 				std::memcpy((uint8_t*)&buffer.data + offset, ret.data, ret.size);
 				buffer.bytes_filled += ret.size;
-				if(_vrt_base_addr == 0x0ull)
+				if(buffer.bytes_filled == sizeof(PT))
 				{
-					if(buffer.bytes_filled == sizeof(PT))
-					{
 
-						ray_state.phase = RayState::Phase::TRI_ISECT;
-						_tri_isect_queue.push(ray_id);
-					}
-				}
-				else
-				{
-					if(buffer.bytes_filled == sizeof(rtm::IndexStrip))
-					{
-						ray_state.phase = RayState::Phase::VRT_FETCH;
-						_try_queue_vrts(ray_id);
-					}
-				}
-			}
-			else if(buffer.type == 2)
-			{
-				rtm::vec4 vrt;
-				std::memcpy(&vrt, ret.data, sizeof(rtm::vec4));
-				uint index = ret.dst.pop(8);
-				buffer.tri_strip.vrts[index].x = vrt.x;
-				buffer.tri_strip.vrts[index].y = vrt.y;
-				buffer.tri_strip.vrts[index].z = vrt.z;
-
-				buffer.bytes_filled += 12;
-				if((buffer.tri_strip.num_tris + 2) * 12 == buffer.bytes_filled)
-				{
 					ray_state.phase = RayState::Phase::TRI_ISECT;
 					_tri_isect_queue.push(ray_id);
 				}

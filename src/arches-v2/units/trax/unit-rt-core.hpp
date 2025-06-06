@@ -56,8 +56,6 @@ private:
 			uint8_t data[1];
 			NT node;
 			PT prim;
-			rtm::IndexStrip index_strip;
-			rtm::TriangleStrip tri_strip;
 		};
 
 		StagingBuffer() {}
@@ -83,7 +81,7 @@ private:
 		rtm::vec3 inv_d;
 		rtm::Hit hit;
 
-		const static uint STACK_SIZE = 5;
+		const static uint STACK_SIZE = 4;
 		rtm::RestartTrail restart_trail;
 		StackEntry stack[STACK_SIZE + rtm::WBVH::WIDTH];
 		uint8_t stack_size;
@@ -144,7 +142,7 @@ private:
 	std::set<uint> _rows_accessed;
 
 	bool _drain_phase{false};
-	bool _pop_culling{true};
+	bool _pop_culling{false};
 
 	uint _stall_cycles{0};
 public:

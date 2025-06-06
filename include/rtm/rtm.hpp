@@ -33,9 +33,4 @@
 #include "wide-treelet-bvh.hpp"
 #include "compressed-wide-treelet-bvh.hpp"
 
-#include "wide-bvh-strata.hpp"
-#include "wide-treelet-bvh-strata.hpp"
-#include "compressed-wide-bvh-strata.hpp"
-#include "compressed-wide-treelet-bvh-strata.hpp"
-
 #include "intersect.hpp"
