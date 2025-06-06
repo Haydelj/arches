@@ -1,6 +1,6 @@
 #pragma once
 #include "units/unit-tp.hpp"
-#include "strata-kernel/ray-data.hpp"
+#include "strata-rt-kernel/ray-data.hpp"
 
 namespace Arches { namespace Units { namespace STRaTART {
 

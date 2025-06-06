@@ -179,16 +179,6 @@ struct TreeletStackEntry
 	uint treelet_id;
 };
 
-static rtm::WideTreeletBVH::Treelet::Node decompress(const rtm::WideTreeletBVH::Treelet::Node& node)
-{
-	return node;
-}
-
-static rtm::WideTreeletBVH::Treelet::Node decompress(const rtm::CompressedWideTreeletBVH::Treelet::Node& node)
-{
-	return node.decompress();
-}
-
 template<typename T>
 inline bool intersect_treelet(const T& treelet, const rtm::Ray& ray, rtm::Hit& hit, TreeletStackEntry* treelet_queue, uint& treelet_queue_tail)
 {
@@ -245,16 +235,14 @@ inline bool intersect_treelet(const T& treelet, const rtm::Ray& ray, rtm::Hit& h
 		else
 		{
 		#if 1
-			for(uint i = 0; i < current_entry.data.num_tri; ++i)
-			{
-				uint32_t offset = current_entry.data.triangle_index + i * (sizeof(rtm::WideTreeletBVH::Treelet::Triangle) / 4);
-				const rtm::WideTreeletBVH::Treelet::Triangle& tri = *(rtm::WideTreeletBVH::Treelet::Triangle*)((uint32_t*)treelet.nodes + offset);
-				if(_intersect(tri.tri, ray, hit))
+			rtm::IntersectionTriangle tris[rtm::FTB::MAX_PRIMS];
+			uint tri_count = rtm::decompress(treelet.prims[current_entry.data.triangle_index], 42, tris);
+			for(uint i = 0; i < tri_count; ++i)
+				if(_intersect(tris[i].tri, ray, hit))
 				{
-					hit.id = tri.id;
+					hit.id = tris[i].id;
 					found_hit = true;
 				}
-			}
 		#else
 			if(current_entry.t < hit.t)
 			{

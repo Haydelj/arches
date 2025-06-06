@@ -76,11 +76,7 @@ private:
 		{
 			uint8_t data[1];
 			Treelet::Node node;
-			struct
-			{
-				Treelet::Triangle tris[3];
-				uint num_tris;
-			};
+			rtm::FTB ftb;
 		};
 
 		StagingBuffer() {}
@@ -145,12 +141,12 @@ private:
 
 	//node pipline
 	std::queue<uint> _node_isect_queue;
-	Pipline<uint> _box_pipline;
+	LatencyFIFO<uint> _box_pipline;
 	uint _boxes_issued{0};
 
 	//tri pipline
 	std::queue<uint> _tri_isect_queue;
-	Pipline<uint> _tri_pipline;
+	LatencyFIFO<uint> _tri_pipline;
 	uint _tris_issued{0};
 
 	//meta data
@@ -220,7 +216,7 @@ private:
 	}
 
 	bool _try_queue_node(uint ray_id, uint treelet_id, uint node_id);
-	bool _try_queue_tri(uint ray_id, uint treelet_id, uint tri_offset, uint num_tris);
+	bool _try_queue_tri(uint ray_id, uint treelet_id, uint tri_id);
 	bool _try_queue_prefetch(paddr_t addr, uint size, uint cache_mask);
 
 	void _read_requests();

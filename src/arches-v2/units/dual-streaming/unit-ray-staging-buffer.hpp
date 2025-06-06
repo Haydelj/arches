@@ -62,10 +62,10 @@ private:
 	std::queue<uint> completed_buckets;
 
 	std::queue<uint> workitem_request_queue;
-	std::queue<std::pair<uint, uint>> thread_workitem_request_queue;
+	std::queue<std::pair<uint, uint64_t>> thread_workitem_request_queue;
 
 	MemoryReturn returned_hit;
-	std::map<paddr_t, std::queue<std::pair<uint16_t, uint32_t>>> tp_load_hit_request;
+	std::map<paddr_t, std::queue<std::pair<uint16_t, uint64_t>>> tp_load_hit_request;
 
 	bool request_valid{false};
 	MemoryRequest request{};

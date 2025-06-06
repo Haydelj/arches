@@ -45,7 +45,7 @@ inline static void kernel(const STRaTARTKernel::Args& args)
             raydata.global_ray_id = index;
             raydata.treelet_id = 0;
 			raydata.level = 0;
-			raydata.restart_trail = STRaTARTKernel::RestartTrail();
+			raydata.restart_trail = rtm::RestartTrail();
 			if(ray.t_min == ray.t_max) raydata.restart_trail.mark_done();
             _swi(raydata);
         }
@@ -101,19 +101,19 @@ int main(int argc, char* argv[])
 	std::vector<rtm::BVH2::BuildObject> build_objects;
 	mesh.get_build_objects(build_objects);
 
-	rtm::BVH2 bvh2("../../../datasets/cache/intel-sponza.bvh", build_objects, 2);
+	rtm::BVH2 bvh2("../../../datasets/cache/intel-sponza.bvh", build_objects, 2); 
 	mesh.reorder(build_objects);
 
 	std::vector<rtm::Ray> rays(args.framebuffer_size);
 	if (args.pregen_rays)
-		pregen_rays(args.framebuffer_width, args.framebuffer_height, args.camera, bvh2, mesh, 1, rays);
+		pregen_rays(args.framebuffer_width, args.framebuffer_height, args.camera, bvh2, mesh, 0, rays);
 	args.rays = rays.data();
 
 #ifdef USE_COMPRESSED_WIDE_BVH
-	rtm::WideBVH wbvh(bvh2, build_objects);
+	rtm::WBVH wbvh(bvh2, build_objects, &mesh);
 	mesh.reorder(build_objects);
-	rtm::CompressedWideBVH cwbvh(wbvh);
-	rtm::CompressedWideTreeletBVH cwtbvh(cwbvh, mesh);
+	rtm::NVCWBVH cwbvh(wbvh);
+	rtm::CompressedWideTreeletBVH cwtbvh(cwbvh, wbvh.ft_blocks.data());
 	args.treelets = cwtbvh.treelets.data();
 #else
 	rtm::WideBVHSTRaTA packed_bvh2(bvh2, build_objects);

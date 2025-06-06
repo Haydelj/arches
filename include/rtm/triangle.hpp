@@ -1,11 +1,12 @@
 #pragma once
 
 #include "aabb.hpp"
+#include <map>
 
 namespace rtm
 {
 
-class Triangle
+class alignas(64) Triangle
 {
 public:
 	rtm::vec3 vrts[3];
@@ -23,20 +24,30 @@ public:
 	AABB aabb() const
 	{
 		AABB aabb;
-		for(int i = 0; i < 3; ++i)
-		{
-			aabb.min = rtm::min(aabb.min, vrts[i]);
-			aabb.max = rtm::max(aabb.max, vrts[i]);
-		}
+		for(uint i = 0; i < 3; ++i)
+			aabb.add(vrts[i]);
 		return aabb;
 	}
 
-	static float cost() { return 2.0f; }
+	static float cost() { return 1.0f; }
 
 	rtm::vec3 normal()
 	{
 		return rtm::normalize(rtm::cross(vrts[0] - vrts[2], vrts[1] - vrts[2]));
 	}
 };
+
+struct IntersectionTriangle
+{
+	Triangle tri;
+	uint id;
+};
+
+inline uint decompress(const rtm::Triangle& in, uint id0, rtm::IntersectionTriangle* out)
+{
+	out[0].tri = in;
+	out[0].id = id0;
+	return 1;
+}
 
 }

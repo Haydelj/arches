@@ -206,7 +206,7 @@ inline bool intersect(const rtm::CompressedWideTreeletBVH::Treelet* treelets, co
 	uint32_t node_stack_size = 1u;
 	node_stack[0] = root_node;
 
-	STRaTARTKernel::RestartTrail restart_trail;
+	rtm::RestartTrail restart_trail;
 	uint level = 0;
 
 	bool update_restart_trail = false;
@@ -240,7 +240,7 @@ inline bool intersect(const rtm::CompressedWideTreeletBVH::Treelet* treelets, co
 			{
 				current_entry = node_stack[--node_stack_size];
 				if(current_entry.is_last)
-					restart_trail.set(parent_level, STRaTARTKernel::RestartTrail::N);
+					restart_trail.set(parent_level, rtm::RestartTrail::N);
 				level = parent_level + 1;
 			}
 		}
@@ -279,7 +279,7 @@ inline bool intersect(const rtm::CompressedWideTreeletBVH::Treelet* treelets, co
 			uint k = restart_trail.get(level);
 
 			uint nodes_pushed = 0;
-			const rtm::WideTreeletBVH::Treelet::Node node = treelets[treelet_id].nodes[current_entry.data.child_index].decompress();
+			const rtm::WideTreeletBVH::Treelet::Node node = decompress(treelets[treelet_id].nodes[current_entry.data.child_index]);
 			for(uint i = 0; i < rtm::WideTreeletBVH::WIDTH; ++i)
 			{
 				if(!node.is_valid(i)) continue;
@@ -300,7 +300,7 @@ inline bool intersect(const rtm::CompressedWideTreeletBVH::Treelet* treelets, co
 				}
 			}
 
-			if(k == STRaTARTKernel::RestartTrail::N) nodes_pushed = 1;
+			if(k == rtm::RestartTrail::N) nodes_pushed = 1;
 			else                     nodes_pushed -= rtm::min(nodes_pushed, k);
 
 			if(nodes_pushed == 0)
@@ -310,7 +310,7 @@ inline bool intersect(const rtm::CompressedWideTreeletBVH::Treelet* treelets, co
 			else
 			{
 				update_restart_trail = false;
-				if(nodes_pushed == 1) restart_trail.set(level, STRaTARTKernel::RestartTrail::N);
+				if(nodes_pushed == 1) restart_trail.set(level, rtm::RestartTrail::N);
 				else                  node_stack[node_stack_size].is_last = true;
 				node_stack_size += nodes_pushed;
 				level++;
@@ -320,18 +320,16 @@ inline bool intersect(const rtm::CompressedWideTreeletBVH::Treelet* treelets, co
 		{
 			//if(ENABLE_PRINTS)
 			//	printf("TRI: %d:%d\n", current_entry.data.triangle_index, current_entry.data.num_tri);
-		#if 1
-			for(uint i = 0; i < current_entry.data.num_tri; ++i)
+		#if 0
+			for(uint j = 0; j < current_entry.data.num_tri; ++j)
 			{
-				uint32_t offset = current_entry.data.triangle_index + i * (sizeof(rtm::WideTreeletBVH::Treelet::Triangle) / 4);
-				const rtm::WideTreeletBVH::Treelet::Triangle& tri = *(rtm::WideTreeletBVH::Treelet::Triangle*)((uint32_t*)treelets[treelet_id].nodes + offset);
-				if(_intersect(tri.tri, ray, hit))
-				{
-					hit.id = tri.id;
-					if(first_hit) return true;
-					else found_hit = true;
-				}
-			}
+				rtm::IntersectionTriangle tris[rtm::FTB::MAX_PRIMS];
+				uint tri_count = rtm::decompress(treelets[treelet_id].prims[current_entry.data.triangle_index], current_entry.data.triangle_index, tris);
+
+				for(uint i = 0; i < tri_count; ++i)
+					if(_intersect(tris[i].tri, ray, hit))
+						hit.id = current_entry.data.triangle_index * rtm::FTB::MAX_PRIMS + i;
+		}
 		#else
 			if(current_entry.t < hit.t)
 			{

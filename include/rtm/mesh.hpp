@@ -11,9 +11,12 @@
 #include <string>
 #include <fstream>
 #include <cassert>
+#include <map>
+#include <set>
+#include <unordered_set>
+#include <deque>
 
-namespace rtm 
-{
+namespace rtm {
 
 class Mesh
 {
@@ -25,6 +28,8 @@ public:
 	std::vector<rtm::vec3> vertices;
 	std::vector<rtm::vec3> normals;
 	std::vector<rtm::vec2> tex_coords;
+	std::vector<uvec3> quantized_vertices;
+	uint8_t exp; //bias exponent
 
 	std::vector<uint> material_indices;
 	std::vector<std::string> material_names;
@@ -122,7 +127,7 @@ public:
 
 	bool load_obj(const char* file_path)
 	{
-		printf("Loading: %s\n", file_path);
+		printf("Mesh: Loading: %s\n", file_path);
 
 		std::ifstream is(file_path);
 		if(!is.is_open()) return false;
@@ -230,7 +235,7 @@ public:
 				break;
 
 			default:
-				printf("\nInvalid line: %jd\n", line_number);
+				printf("\nMesh: Invalid line: %jd\n", line_number);
 				break;
 			}
 
@@ -255,7 +260,8 @@ public:
 			}
 		}
 
-		printf("Loaded: %s\n", file_path);
+		printf("Mesh: Size: %.1f MiB\n", ((float)sizeof(rtm::vec3) * vertices.size() + (float)sizeof(rtm::uvec3) * vertex_indices.size()) / (1 << 20));
+
 		return true;
 	}
 
@@ -290,6 +296,32 @@ public:
 			build_objects.push_back(get_build_object(i));
 	}
 
+	uint8_t quantize_verts()
+	{
+		float32_bf max(0.0f);
+		for(auto& v : vertices)
+			for(uint i = 0; i < 3; ++i)
+				max.f32 = rtm::max(std::abs(v[i]), max.f32);
+
+		max.mantisa = 0;
+		max.exp++;
+		exp = max.exp;
+
+		for(auto& v : vertices)
+		{
+			quantized_vertices.push_back(0);
+			for(uint i = 0; i < 3; ++i)
+			{
+				quantized_vertices.back()[i] = f32_to_i24(v[i], exp);
+				v[i] = i24_to_f32(quantized_vertices.back()[i], exp);
+			}
+		}
+		printf("Mesh: Quantized with exp: %f\n", rtm::float32_bf(0, exp, 0).f32);
+
+
+		return exp;
+	}
+
 	void reorder(std::vector<BVH2::BuildObject>& ordered_build_objects)
 	{
 		assert(ordered_build_objects.size() == vertex_indices.size());
@@ -304,6 +336,79 @@ public:
 			tex_coord_indices[i] = tmp_txcd_inds[ordered_build_objects[i].index];
 			material_indices[i]  = tmp_mat_inds [ordered_build_objects[i].index];
 			ordered_build_objects[i].index = i;
+		}
+	}
+
+	void reorder(const std::vector<uint>& face_indices)
+	{
+		assert(face_indices.size() == vertex_indices.size());
+		std::vector<rtm::uvec3> tmp_vrt_inds(vertex_indices);
+		std::vector<rtm::uvec3> tmp_nrml_inds(normal_indices);
+		std::vector<rtm::uvec3> tmp_txcd_inds(tex_coord_indices);
+		std::vector<uint>       tmp_mat_inds(material_indices);
+		for(uint32_t i = 0; i < face_indices.size(); ++i)
+		{
+			vertex_indices[i] = tmp_vrt_inds[face_indices[i]];
+			normal_indices[i] = tmp_nrml_inds[face_indices[i]];
+			tex_coord_indices[i] = tmp_txcd_inds[face_indices[i]];
+			material_indices[i] = tmp_mat_inds[face_indices[i]];
+		}
+	}
+};
+
+
+class MeshGraph
+{
+public:
+	//build face graph
+	std::vector<rtm::uvec3> face_graph;
+	MeshGraph(const Mesh& mesh)
+	{
+		face_graph.resize(mesh.vertex_indices.size(), uvec3(~0u));
+
+		std::map<std::pair<uint32_t, uint32_t>, std::pair<uint32_t, uint32_t>> edge_to_face_map;
+		for(uint f = 0; f < mesh.vertex_indices.size(); ++f)
+		{
+			uvec3 face = mesh.vertex_indices[f];
+			for(uint e = 0; e < 3; ++e)
+			{
+				std::pair<uint32_t, uint32_t> edge(face[(e + 1) % 3], face[(e + 2) % 3]);
+				if(edge.first > edge.second) std::swap(edge.first, edge.second);
+				if(edge_to_face_map.find(edge) != edge_to_face_map.end())
+				{
+					//link
+					uint32_t other_f = edge_to_face_map[edge].first;
+					uint32_t other_e = edge_to_face_map[edge].second;
+					face_graph[f][e] = other_f;
+					face_graph[other_f][other_e] = f;
+				}
+				else edge_to_face_map[edge] = {f, e};
+			}
+		}
+
+		for(auto& face : face_graph)
+		{
+			if(face[0] == face[1] && face[1] == face[2])
+			{
+				face[0] = ~0u;
+				face[1] = ~0u;
+				face[2] = ~0u;
+			}
+			if(face[0] == face[1])
+			{
+				face[0] = ~0u;
+				face[1] = ~0u;
+			}
+			if(face[1] == face[2])
+			{
+				face[1] = ~0u;
+				face[2] = ~0u;
+			}
+			if(face[2] == face[0])
+			{
+				face[2] = ~0u;
+				face[0] = ~0u;
+			}
 		}
 	}
 };

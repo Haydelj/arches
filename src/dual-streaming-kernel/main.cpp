@@ -89,9 +89,9 @@ int main(int argc, char* argv[])
 
 	//args.camera = rtm::Camera(args.framebuffer_width, args.framebuffer_height, 12.0f, rtm::vec3(6.78f, -5.87, 0.84), rtm::vec3(7.78f, -5.87, 0.84f));
 	
-	std::string dataset_path = "../../datasets/";
-	//std::string scene_name = "sponza";  args.camera = rtm::Camera(args.framebuffer_width, args.framebuffer_height, 12.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
-	std::string scene_name = "san-miguel"; args.camera = rtm::Camera(args.framebuffer_width, args.framebuffer_height, 12.0f, rtm::vec3(7.448, 1.014, 12.357), rtm::vec3(7.448 + 0.608, 1.014 + 0.026, 12.357 - 0.794));
+	std::string dataset_path = "../../../datasets/";
+	std::string scene_name = "intel-sponza";  args.camera = rtm::Camera(args.framebuffer_width, args.framebuffer_height, 12.0f, rtm::vec3(-900.6f, 150.8f, 120.74f), rtm::vec3(79.7f, 14.0f, -17.4f));
+	//std::string scene_name = "san-miguel"; args.camera = rtm::Camera(args.framebuffer_width, args.framebuffer_height, 12.0f, rtm::vec3(7.448, 1.014, 12.357), rtm::vec3(7.448 + 0.608, 1.014 + 0.026, 12.357 - 0.794));
 	//std::string scene_name = "san-miguel"; args.camera = rtm::Camera(args.framebuffer_width, args.framebuffer_height, 12.0f, rtm::vec3(6.37319, -5.62511, 1.53861), rtm::vec3(0.72299, 0.68257, 0.10671));
 	args.light_dir = rtm::normalize(rtm::vec3(4.5, 42.5, 5.0));
 
@@ -108,14 +108,14 @@ int main(int argc, char* argv[])
 	args.rays = rays.data();
 
 #if DS_USE_COMPRESSED_WIDE_BVH
-	rtm::WideBVH wbvh(bvh2, build_objects);
-	rtm::CompressedWideBVH cwbvh(wbvh);
+	rtm::WBVH wbvh(bvh2, build_objects, &mesh, false);
+	rtm::NVCWBVH cwbvh(wbvh);
 	mesh.reorder(build_objects);
 
-	rtm::CompressedWideTreeletBVH cwtbvh(cwbvh, mesh);
+	rtm::CompressedWideTreeletBVH cwtbvh(cwbvh, wbvh.ft_blocks.data());
 	args.treelets = cwtbvh.treelets.data();
 #else
-	rtm::WideBVH wbvh(bvh2, build_objects);
+	rtm::WBVH wbvh(bvh2, build_objects);
 	mesh.reorder(build_objects);
 
 	rtm::WideTreeletBVH wtbvh(wbvh, mesh);
