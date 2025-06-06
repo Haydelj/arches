@@ -3,6 +3,8 @@
 Arches is a general-purpose and fast cycle-level hardware simulator.
 It was designed to simulate massively parallel computing hardware with the goals of high performance, flexibility, and accuracy.
 
+![](https://graphics.cs.utah.edu/research/projects/arches/repimage-large.jpeg)
+
 Arches uses parallel computation to efficiently simulate a large number of hardware units. These units are defined as modules that communicate with each other using interconnects. 
 Arches allows designing arbitrary hardware architectures with custom hardware units by implementing the functionalities of all units as modules and specifying their connections using a C++ interface.
 
