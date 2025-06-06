@@ -1,13 +1,21 @@
-## Arches
+# Arches - Cycle-Level Hardware Simulator
 
 Arches is a general-purpose and fast cycle-level hardware simulator.
+It was designed to simulate massively parallel computing hardware with the goals of high performance, flexibility, and accuracy.
 
-The name is a pun on being able to simulate various architectures and on Arches National Park, Utah
+Arches uses parallel computation to efficiently simulate a large number of hardware units. These units are defined as modules that communicate with each other using interconnects. 
+Arches allows designing arbitrary hardware architectures with custom hardware units by implementing the functionalities of all units as modules and specifying their connections using a C++ interface.
+
+Hardware simulations with Arches run a custom user software on the simulated hardware architecture. Arches is integrated with the GNU C++ toolchain for both developing the user software and the hardware modules. The existing processor core module uses RISK-V instruction set and allows adding custom instructions for controlling custom hardware units. The GNU toolchain can also be used for compiling the user software to run natively on existing CPUs without running on the simulated hardware using Arches. This is particularly useful for debugging purposes.
+
+Arches includes instrumentation features for measuring the performance statistics of all modules. These statistics can be aggregated to produce brief outputs or exported as time-varying measurements.
+
+The name "Arches" is a pun on being able to simulate various architectures and on Arches National Park, Utah
 (it being traditional at the University of Utah to name software projects after Utah or Salt Lake
 City features).
 
 ## Setup (Simulator)
-To clone and build the project simply run the following commands:
+To clone and build the project, simply run the following commands:
 ```bash
 git clone https://github.com/Haydelj/arches-v2.git
 cd arches-v2
