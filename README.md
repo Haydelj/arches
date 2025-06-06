@@ -1,6 +1,6 @@
-# Arches - Cycle-Level Hardware Simulator
+# Arches - Cycle-Level Hardware Architecture Simulator
 
-Arches is a general-purpose and fast cycle-level hardware simulator.
+Arches is a general-purpose and fast cycle-level hardware simulator developed by the [Hardware Ray Tracing Research Group](https://hwrt.cs.utah.edu) of the [Utah Graphics Lab](https://graphics.cs.utah.edu) at the [University of Utah](https://www.cs.utah.edu).
 It was designed to simulate massively parallel computing hardware with the goals of high performance, flexibility, and accuracy.
 
 ![](https://graphics.cs.utah.edu/research/projects/arches/repimage-large.jpg)
@@ -12,14 +12,20 @@ Hardware simulations with Arches run a custom user software on the simulated har
 
 Arches includes instrumentation features for measuring the performance statistics of all modules. These statistics can be aggregated to produce brief outputs or exported as time-varying measurements.
 
-The name "Arches" is a pun on being able to simulate various architectures and on Arches National Park, Utah
+The name "Arches" is a pun on being able to simulate various **arch**itectures and on Arches National Park, Utah
 (it being traditional at the University of Utah to name software projects after Utah or Salt Lake
 City features).
+
+## Project Page
+
+You can find the details about our design decisions for developing Arches on its [Project Page](https://graphics.cs.utah.edu/research/projects/arches/), where you will find the related publication:
+
+> Jacob Haydel, Gaurav Bhokare, Kunnong Zeng, Pengpei Hong, Sushant Kondguli, Brian Budge, Erik Brunvand, & Cem Yuksel. (2025). Arches: [A Cycle Level Simulator for Exploring Massively Parallel Ray Tracing Architectures](https://graphics.cs.utah.edu/research/projects/arches/arches-hpg2025.pdf). *Computer Graphics Forum (Proceedings of HPG 2025)*, 44(8)
 
 ## Setup (Simulator)
 To clone and build the project, simply run the following commands:
 ```bash
-git clone https://github.com/Haydelj/arches-v2.git
+git clone https://github.com/Utah-Graphics-Lab/arches.git
 cd arches-v2
 mkdir build
 cd build
@@ -43,7 +49,7 @@ make
 ```
 After these steps are completed, users are able to use `riscv64-uknown-elf-gcc` to compile C code and `riscv64-unknown-elf-g++` to compile C/C++ code. 
 
-## Adding custom instructions
+## Adding Custom Instructions
 A key reason we used RISC-V over other research languages (i.e. MIPS) was the ease with which RISC-V can be extended. This allows researchers to use our framework to test novel hardware designs that may rely on custom instructions for drastic performance improvements. It's important to note that this method allows progams using custom instructions to compile; however, it doesn't act as a true cross-compiler, i.e. users will need to use inline ASM to include their custom instructions.
 
 To add custom instructions, we followed the guide available [here](https://nitish2112.github.io/post/adding-instruction-riscv/). Since the time of this guide's writing, there have been a few notable changes to the build tree of the riscv-gnu-toolchain, so we will only note the differences below:
@@ -58,7 +64,7 @@ $ make
 ```
 After rebuilding, the user should be able to run the cross-compiled programs with their custom instructions on the Arches framework, assuming they have extended the implementation of the RISC-V ISA provided by Arches to contain their custom instruction.
 
-More details about the RISC-V ISA are available [by reading the specification](https://github.com/riscv/riscv-isa-manual/releases/download/Ratified-IMFDQC-and-Priv-v1.11/riscv-privileged-20190608.pdf), but it's expected that users are at least familiar with RISC-V before they attempt to implement custom instructions. 
+More details about the RISC-V ISA can be found in the [RISC-V specification](https://github.com/riscv/riscv-isa-manual/releases/download/Ratified-IMFDQC-and-Priv-v1.11/riscv-privileged-20190608.pdf). Users are expected to be at least familiar with RISC-V before they attempt to implement custom instructions.
 
 ## Contributing
 Follow the coding style in the existing code.  Additionally, aim for cleanliness above all else.
